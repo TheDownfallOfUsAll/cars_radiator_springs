@@ -436,6 +436,7 @@ if 'role' not in st.session_state:
 # ==========================================================
 
 def show_home():
+    st.image("logo-of-app.png", use_container_width=True)
     st.markdown("""
     <div class="hero-box">
         <div class="hero-title">🚗 Cars Radiator Springs</div>
@@ -508,6 +509,66 @@ def show_home():
             <div class="card-desc">Creamy vanilla shake</div>
         </div>
         """, unsafe_allow_html=True)
+
+
+def show_story():
+    st.image("logo-of-app.png", use_container_width=True)
+    st.markdown("""
+    <div class="hero-box">
+        <div class="hero-title">📖 The Story of Radiator Springs</div>
+        <div class="hero-subtitle">How a forgotten town became the Home Of The Recipe</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    ### 🛣️ A Highway of Flavors
+    
+    Once upon a time, deep in the heart of Arizona, there was a little town called **Radiator Springs** — a place that time seemed to have passed by. After the interstate diverted traffic away from Route 66, the town quieted down. The neon lights of Flo's V8 Café flickered a little dimmer. The paint shop sat idle. And the aroma of home-cooked meals rarely drifted beyond the kitchen walls.
+    
+    But everything changed when a certain red race car took a wrong turn and crashed into our lives.
+    
+    ### ⚡ Ka-Chow! A Star is Reborn
+    
+    **Lightning McQueen** didn't mean to stay. He was a piston cup champion, a celebrity, a car built for speed — not for small-town hospitality. Yet, something magical happened during those few days he spent fixing the road he tore up. He met **Mater**, the rustiest but most loyal tow truck you could ever know. He met **Sally**, the intelligent and warm-hearted Porsche who saw beauty in the rusty bolts and faded paint of the town. He met **Doc Hudson**, the wise old Hudson Hornet who taught him that winning isn't everything.
+    
+    McQueen fell in love — not just with the town, but with the people... and the food.
+    
+    ### 🍜 From Racing Fuel to Real Food
+    
+    You see, Radiator Springs was never just about racing. It was about community. Every Sunday, the residents would gather at Flo's V8 Café. Flo would serve her famous **V8 Coffee** and **Sunshine Pancakes**. Luigi and Guido would bring over pasta fresh from their tire shop kitchen. Ramone would paint plates as beautifully as he painted cars. And Mater? Well, Mater would bring his famous **Tow Truck Tacos** — a little messy, a lot of love.
+    
+    When McQueen decided to make Radiator Springs his home, he brought the world with him. Fans from every continent visited. They came for the races, but they stayed for the meals. And that's when Sally had an idea:
+    
+    > *"Why don't we share our recipes with the world? Let's make Radiator Springs the Home Of The Recipe!"*
+    
+    ### 🌏 The World Tour Begins
+    
+    As visitors from around the globe rolled into town, they brought their own flavors. A Filipino chef visited during the World Grand Prix exhibition and cooked **Sinigang** for the whole town. The sour soup was so good, it became a permanent fixture on the menu. Then came **Adobo**, **Lechon**, **Halo-Halo**, **Pancit**, **Kare-Kare**, and so many more. The townsfolk realized that food, like friendship, has no borders.
+    
+    **Mater** became the ambassador of comfort food. **McQueen** sponsored recipe races — where chefs would compete to create the fastest, tastiest dishes. **Finn McMissle** and **Holley Shiftwell** built an AI system to help visitors learn how to cook these dishes at home. Even **Cruz Ramirez** started a junior chef program for young cars!
+    
+    ### 🤖 The Digital Kitchen
+    
+    Today, the **Cars Radiator Springs: Home Of The Recipe** app is the digital heart of this culinary revolution. Built with love by the Radiator Springs Team, it brings together:
+    
+    - 🍔 **Radiator Springs Classics** — The burgers, shakes, fries, and pancakes that fueled champions.
+    - 🇵🇭 **Filipino Favorites** — The rich, sour, sweet, and savory dishes that taught us family is everything.
+    - 🤖 **Finn-Holley AI Chatbot** — Your personal cooking assistant, fluent in English and Tagalog, ready to guide you through any recipe.
+    - 🏁 **Event Race** — Because in Radiator Springs, everything is a race... even cooking!
+    - 🌎 **World Tour** — Explore recipes from Italy, Japan, Mexico, France, Thailand, India, USA, and the Philippines.
+    
+    ### ❤️ Made With Love
+    
+    This app isn't just a collection of recipes. It's a story about second chances. About a town that refused to be forgotten. About a race car that learned to slow down and savor life. About a tow truck that proved you don't need shiny paint to have a heart of gold.
+    
+    Every recipe here has been tasted, tested, and approved by the citizens of Radiator Springs. Every dish carries a story. And now, dear visitor, you are part of that story too.
+    
+    So welcome home. Open the app. Pick a recipe. And remember what Mater always says:
+    
+    > *"Ain't no need to go nowhere else — the best food in the world is right here in Radiator Springs! Yee-haw!"*
+    
+    **Ka-chow!** 🏎️✨
+    """)
 
 
 def show_login_register():

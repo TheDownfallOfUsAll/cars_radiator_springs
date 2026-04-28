@@ -120,20 +120,9 @@ For production, replace credentials and strengthen auth/security.
 - World Tour now supports start-country selection.
 - UI and emoji rendering cleanup/improvements.
 
-## 🔄 How To Add Future Updates
-
-Append updates under **Recent Updates**:
-
-```md
-### YYYY-MM-DD
-- Change summary
-- Feature update
-- Migration note (if needed)
-```
-
 Keep entries short and user-facing.
 
 ## ⚠️ Notes
 
 - Built for local/demo usage.
-- If emoji appears broken (`Ã...` text), ensure UTF-8 encoding and restart Streamlit.
+- If emoji appears broken (`Ã......` text), ensure UTF-8 encoding and restart Streamlit.

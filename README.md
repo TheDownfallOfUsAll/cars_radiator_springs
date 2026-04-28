@@ -18,6 +18,9 @@ This app is designed like a light story mode: you start at home, unlock features
 ### 🏠 Home / Welcome
 The intro scene. Lightning McQueen and Mater welcome the user and set the theme.
 
+### 📖 The Story of Radiator Springs
+Full narrative mode telling how the town became the Home Of The Recipe. Covers McQueen's arrival, the digital kitchen, and the world tour origins.
+
 ### 🔐 Login / Register
 SQLite-based user login with admin support.
 
@@ -31,7 +34,10 @@ Cars-themed recipe section.
 Traditional Filipino dishes and entries.
 
 ### 🤖 Finn-Holley AI Chatbot
-Character-style assistant for:
+Character-style assistant with 7 selectable personalities:
+- Finn McMissle, Holley Shiftwell, Rod Redline, Tomber, Leland Turbo, Miles Axelrod, Mater
+
+Handles:
 - recipe questions
 - greetings (English/Tagalog flow)
 - race-related prompts (e.g., schedule / next racers)
@@ -45,10 +51,13 @@ Map-first travel mode where users select a starting country before beginning the
 ### ⚙️ Settings
 Account/status and app preferences.
 
+### ℹ️ About
+App information, version, and contact details.
+
 ## 🎮 Gameplay-Like Systems
 
 ## 🏁 Event Race Mode
-- Large racer roster (classic + added world racers)
+- Large racer roster (22 drivers: classic + added world racers)
 - Track selection includes:
   - Radiator Springs Speedway
   - Coastal Circuit
@@ -72,8 +81,9 @@ Account/status and app preferences.
 - Recipe browsing and categories
 - SQLite authentication
 - Admin visibility for user management
-- Recipe chatbot experience
+- Recipe chatbot experience with 7 characters
 - Race mode and world-tour mode
+- Expanded Filipino and Radiator Springs recipe knowledge base
 
 ## 🛠 Tech Stack
 
@@ -102,15 +112,43 @@ Open the URL shown in terminal (usually `http://localhost:8501`).
 - Username: `admin`
 - Password: `admin123`
 
-For production, replace credentials and strengthen auth/security.
+> ⚠️ For production, replace default credentials and strengthen authentication before deploying. See Security Notes below.
+
+## 🔒 Security Notes
+
+### Audit Findings
+The following issues were identified in the current codebase:
+
+- **XSS Vulnerability**: The chatbot renders user messages directly into HTML via `st.markdown(..., unsafe_allow_html=True)` without escaping. Malicious input like `<script>` tags will execute in the browser.
+- **Weak Password Hashing**: SHA-256 is used instead of a purpose-built password hash (e.g., `bcrypt`, `argon2-cffi`). Rainbow-table attacks are trivial against SHA-256 hashed passwords.
+- **Hardcoded Admin Password**: The default admin account is created with a hardcoded password (`admin123`) and the hint is exposed in the UI login panel.
+- **No Rate Limiting**: The login flow has no brute-force protection.
+- **No Input Validation**: Registration fields (username, email, password) are not validated or sanitized before storage.
+
+### Recommendations
+- Escape user content before injecting into `st.markdown(..., unsafe_allow_html=True)` or switch to `st.write()` / `st.text()` for chat messages.
+- Replace SHA-256 with `bcrypt` or `argon2-cffi` for password hashing.
+- Remove the default admin hint from the UI and force a password change on first login.
+- Add basic rate-limiting or account lockout after repeated failed login attempts.
+- Validate username length, email format, and password complexity on registration.
 
 ## 📁 Main Files
 
 - `app.py` — main application logic/UI
 - `radiator_springs.db` — SQLite data
 - `map-of-the-world.png` — world map asset
+- `logo-of-app.png` — app logo
+- `cars_2_mcquee12.png` — Lightning McQueen character image
+- `cars_2_martin_(tow_mater).png` — Mater character image
 
 ## 📝 Recent Updates
+
+### 2026-04-29
+- Security audit completed; XSS, weak hashing, and hardcoded credential issues documented.
+- Chatbot expanded from 2 to 7 selectable characters (Finn, Holley, Rod, Tomber, Leland, Miles, Mater).
+- Added "The Story of Radiator Springs" narrative page.
+- Added "About" page with version and contact info.
+- README updated with full asset list and security recommendations.
 
 ### 2026-04-28
 - Navigation improved with section-based structure.
@@ -126,3 +164,4 @@ Keep entries short and user-facing.
 
 - Built for local/demo usage.
 - If emoji appears broken (`Ã......` text), ensure UTF-8 encoding and restart Streamlit.
+

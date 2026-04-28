@@ -1,42 +1,87 @@
-# Cars Radiator Springs: Home Of The Recipe
+# 🚗 Cars Radiator Springs: Home Of The Recipe
 
-A Streamlit app inspired by the *Cars* universe, mixing recipes, character-themed interactions, and racing mini-features in one experience.
+A Streamlit story app inspired by the *Cars* universe.  
+It combines recipes, character interactions, race simulation, and world tour exploration in one experience.
 
-## Story Behind The App
+## 🌟 App Story
 
-This app imagines Radiator Springs as more than a stop on Route 66.  
-In this version of the story, Lightning McQueen, Mater, and friends share food culture from their town and around the world.
+Radiator Springs is imagined as a food-and-racing town where Lightning McQueen, Mater, and friends welcome players into a journey of:
+- local themed dishes
+- Filipino food culture
+- world food stops
+- race events with champions
 
-The app combines:
-- Cars-themed food ideas
-- Filipino dishes and recipe discovery
-- Character-based chatbot interactions
-- Event race simulation
-- World tour food stops with a map-first flow
+This app is designed like a light story mode: you start at home, unlock features through login, explore food systems, then move into race and world-tour gameplay.
 
-The goal is to make a playful app where users can explore recipes while staying in a Cars-style setting.
+## 🎬 Story Modes
 
-## Features
+### 🏠 Home / Welcome
+The intro scene. Lightning McQueen and Mater welcome the user and set the theme.
 
-- `🏠 Home / Welcome`: Character welcome screen
-- `🔐 Login / Register`: SQLite authentication with admin user view
-- `📋 Product List`: Search/filter recipes and items
-- `🍔 Radiator Springs Food`: Cars-themed menu section
-- `🇵🇭 Filipino Food List`: Filipino dishes
-- `🤖 Finn-Holley AI Chatbot`: Recipe Q&A and race prompts
-- `🏁 Event Race`: Multi-racer race simulation with standings
-- `🌍 World Tour Recipe`: Country-based recipe tour with map briefing
-- `⚙️ Settings`: Account and preference controls
+### 🔐 Login / Register
+SQLite-based user login with admin support.
 
-## Tech Stack
+### 📋 Product List
+Main recipe board with search/filter.
+
+### 🍔 Radiator Springs Food
+Cars-themed recipe section.
+
+### 🇵🇭 Filipino Food List
+Traditional Filipino dishes and entries.
+
+### 🤖 Finn-Holley AI Chatbot
+Character-style assistant for:
+- recipe questions
+- greetings (English/Tagalog flow)
+- race-related prompts (e.g., schedule / next racers)
+
+### 🏁 Event Race
+Expanded race simulation mode with multiple racers, conditions, and standings.
+
+### 🌍 World Tour Recipe
+Map-first travel mode where users select a starting country before beginning the tour.
+
+### ⚙️ Settings
+Account/status and app preferences.
+
+## 🎮 Gameplay-Like Systems
+
+## 🏁 Event Race Mode
+- Large racer roster (classic + added world racers)
+- Track selection includes:
+  - Radiator Springs Speedway
+  - Coastal Circuit
+  - Desert Loop
+  - Philippine Clark International Speedway (Pampanga)
+  - Batangas Racing Circuit (Rosario, Batangas)
+  - Fuji Speedway
+- Weather + laps affect simulation
+- Time-based finish model (`14s - 32s`)
+- Podium + full standings output
+
+## 🌍 World Tour Mode
+- Shows `map-of-the-world.png` before tour begins
+- User selects **starting country**
+- `Start World Tour` / `Reset Tour` flow
+- Tour cards reorder from selected starting country
+
+## 🧩 What The App Includes
+
+- Character-themed UI and storytelling
+- Recipe browsing and categories
+- SQLite authentication
+- Admin visibility for user management
+- Recipe chatbot experience
+- Race mode and world-tour mode
+
+## 🛠 Tech Stack
 
 - Python 3.13
 - Streamlit
 - SQLite (`radiator_springs.db`)
 
-## Installation
-
-From the project folder:
+## 📦 Installation
 
 ```powershell
 python -m venv venv
@@ -44,51 +89,51 @@ venv\Scripts\activate
 pip install streamlit requests
 ```
 
-## Run The App
+## ▶️ Run
 
 ```powershell
 streamlit run app.py
 ```
 
-Then open the local URL shown by Streamlit (usually `http://localhost:8501`).
+Open the URL shown in terminal (usually `http://localhost:8501`).
 
-## Default Admin Account
+## 🔑 Default Admin
 
 - Username: `admin`
 - Password: `admin123`
 
-Change this in production before sharing publicly.
+For production, replace credentials and strengthen auth/security.
 
-## Project Files
+## 📁 Main Files
 
-- `app.py`: Main Streamlit application
-- `radiator_springs.db`: SQLite database
-- `map-of-the-world.png`: Map shown before the world tour starts
+- `app.py` — main application logic/UI
+- `radiator_springs.db` — SQLite data
+- `map-of-the-world.png` — world map asset
 
-## Recent Updates
+## 📝 Recent Updates
 
 ### 2026-04-28
-- Navigation layout refactor with section-based browsing.
-- World Tour now supports selecting a starting country before starting.
-- Event Race expanded with additional racers and more tracks.
-- Race simulation updated to time-based results in the `14s–32s` range.
-- Emoji and text rendering cleanup after encoding issues.
-- UI polish updates for cards/buttons/sidebar presentation.
+- Navigation improved with section-based structure.
+- Story modes expanded for Event Race + World Tour.
+- Event Race roster expanded and track list updated.
+- Time simulation adjusted to `14s - 32s`.
+- World Tour now supports start-country selection.
+- UI and emoji rendering cleanup/improvements.
 
-## How To Add Future Updates
+## 🔄 How To Add Future Updates
 
-If someone updates the app, append a new dated entry under **Recent Updates** in this format:
+Append updates under **Recent Updates**:
 
 ```md
 ### YYYY-MM-DD
-- Short change summary 1
-- Short change summary 2
-- Any migration/setup notes
+- Change summary
+- Feature update
+- Migration note (if needed)
 ```
 
-Keep each bullet concise and user-facing.
+Keep entries short and user-facing.
 
-## Notes
+## ⚠️ Notes
 
-- The app is designed for local/demo use.
-- If text or emoji looks broken, ensure files are UTF-8 and restart Streamlit.
+- Built for local/demo usage.
+- If emoji appears broken (`Ã...` text), ensure UTF-8 encoding and restart Streamlit.

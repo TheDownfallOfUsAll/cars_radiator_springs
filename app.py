@@ -146,27 +146,28 @@ st.markdown("""
     
     /* Sidebar styling (updated look) */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0f172a 0%, #1e293b 55%, #0b3b3c 100%);
-        border-right: 1px solid rgba(148, 163, 184, 0.25);
+        background: linear-gradient(180deg, #0f172a 0%, #1f2937 55%, #111827 100%);
+        border-right: 1px solid rgba(148, 163, 184, 0.28);
     }
 
     [data-testid="stSidebar"] .stMarkdown p,
     [data-testid="stSidebar"] label,
     [data-testid="stSidebar"] .stCaption {
-        color: #e2e8f0;
+        color: #e5e7eb;
+        font-weight: 600;
     }
 
     [data-testid="stSidebar"] .stSelectbox > div > div,
     [data-testid="stSidebar"] .stRadio > div {
-        background: rgba(255,255,255,0.07);
-        border: 1px solid rgba(148, 163, 184, 0.25);
+        background: rgba(15, 23, 42, 0.55);
+        border: 1px solid rgba(148, 163, 184, 0.35);
         border-radius: 12px;
         padding: 8px;
     }
 
     [data-testid="stSidebar"] .stRadio [role="radiogroup"] > label {
-        background: rgba(15, 23, 42, 0.65);
-        border: 1px solid rgba(148, 163, 184, 0.25);
+        background: rgba(17, 24, 39, 0.78);
+        border: 1px solid rgba(148, 163, 184, 0.35);
         border-radius: 10px;
         margin-bottom: 8px;
         padding: 8px 10px;
@@ -174,18 +175,29 @@ st.markdown("""
     }
 
     [data-testid="stSidebar"] .stRadio [role="radiogroup"] > label:hover {
-        border-color: #22d3ee;
-        box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.45) inset;
+        border-color: #38bdf8;
+        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.45) inset;
     }
 
     .nav-status {
-        background: rgba(15, 23, 42, 0.65);
-        border: 1px solid rgba(148, 163, 184, 0.3);
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px solid rgba(148, 163, 184, 0.35);
         border-radius: 12px;
         padding: 10px 12px;
         margin-bottom: 12px;
-        color: #e2e8f0;
+        color: #e5e7eb;
         font-size: 14px;
+        font-weight: 700;
+    }
+
+    .menu-list-box {
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 12px;
+        padding: 10px 12px;
+        color: #e5e7eb;
+        font-size: 13px;
+        line-height: 1.5;
     }
     
     /* Hero box */
@@ -436,7 +448,7 @@ if 'role' not in st.session_state:
 # ==========================================================
 
 def show_home():
-    st.image("logo-of-app.png", use_container_width=True)
+    st.image("logo-of-app.png", width="stretch")
     st.markdown("""
     <div class="hero-box">
         <div class="hero-title">🚗 Cars Radiator Springs</div>
@@ -512,7 +524,7 @@ def show_home():
 
 
 def show_story():
-    st.image("logo-of-app.png", use_container_width=True)
+    st.image("logo-of-app.png", width="stretch")
     st.markdown("""
     <div class="hero-box">
         <div class="hero-title">📖 The Story of Radiator Springs</div>
@@ -2360,7 +2372,7 @@ def show_chatbot():
 
 def show_event_race():
     st.markdown("## Event Race")
-    st.markdown("*Meet the racing champions and run a full-grid time simulation!*")
+    st.markdown("*Meet the racing champions and run an improved race simulator mode!*")
     racers = [
         {"name": "Lightning McQueen", "emoji": "\U0001F3CE\ufe0f", "color": "#ff3b30", "desc": "The red racing legend - 5-time Piston Cup Champion!"},
         {"name": "Francesco Bernoulli", "emoji": "\U0001F3CE\ufe0f", "color": "#0066cc", "desc": "The Italian speedster - Lightning's biggest rival!"},
@@ -2396,7 +2408,7 @@ def show_event_race():
             </div>
             """, unsafe_allow_html=True)
     st.markdown("### Race Setup")
-    setup_col1, setup_col2, setup_col3 = st.columns(3)
+    setup_col1, setup_col2, setup_col3, setup_col4 = st.columns(4)
     with setup_col1:
         laps = st.slider("Laps", min_value=3, max_value=30, value=10)
     with setup_col2:
@@ -2410,10 +2422,20 @@ def show_event_race():
             "Batangas Racing Circuit (Rosario, Batangas)",
             "Fuji Speedway",
         ])
+    with setup_col4:
+        race_mode = st.selectbox("Race Mode", ["Simulator", "Arcade"])
+    rooted_racers = st.multiselect(
+        "Choose racers to root for",
+        [r["name"] for r in racers],
+        default=["Lightning McQueen"],
+        help="Rooted racers get a small morale boost in simulation.",
+    )
+    if rooted_racers:
+        st.info("Rooting crowd favorites: " + ", ".join(rooted_racers))
     st.markdown("### Race Results Simulator")
     if st.button("Start Race!", type="primary"):
         import random
-        weather_seconds = {"Sunny": 0.0, "Cloudy": 0.4, "Windy": 0.9, "Rainy": 1.6}
+        weather_seconds = {"Sunny": 0.0, "Cloudy": 0.3, "Windy": 0.7, "Rainy": 1.2}
         track_seconds = {
             "Radiator Springs Speedway": 0.2,
             "Coastal Circuit": 0.5,
@@ -2446,24 +2468,47 @@ def show_event_race():
             "Bubba Wheelhouse": 17.6,
             "Chase Racelott": 16.4,
         }
+        mode_variation = 1.5 if race_mode == "Simulator" else 0.8
+        support_bonus = 0.25 if race_mode == "Simulator" else 0.15
         results = []
         for racer in racers:
-            consistency = random.uniform(-1.2, 1.2)
-            lap_factor = laps * 0.03
-            sim_time = base_time[racer["name"]] + consistency + weather_seconds[weather] + track_seconds[track] + lap_factor
-            sim_time = max(14.0, min(32.0, sim_time))
-            results.append((racer["name"], sim_time))
+            lap_times = []
+            for _ in range(laps):
+                lap_time = (
+                    base_time[racer["name"]]
+                    + weather_seconds[weather]
+                    + track_seconds[track]
+                    + random.uniform(-mode_variation, mode_variation)
+                )
+                if racer["name"] in rooted_racers:
+                    lap_time -= support_bonus
+                lap_times.append(max(0.1, lap_time))
+            total_time = sum(lap_times)
+            avg_lap_time = total_time / laps
+            best_lap = min(lap_times)
+            is_rooted = racer["name"] in rooted_racers
+            results.append((racer["name"], total_time, avg_lap_time, best_lap, is_rooted))
         ranking = sorted(results, key=lambda x: x[1])
-        st.success(f"Winner: {ranking[0][0]} | Best Time: {ranking[0][1]:.2f}s | Track: {track}")
+        st.success(
+            f"Winner: {ranking[0][0]} | Total Time: {ranking[0][1]:.2f}s | "
+            f"Laps: {laps} | Track: {track} | Mode: {race_mode}"
+        )
         st.markdown("### Podium")
-        for idx, (name, sim_time) in enumerate(ranking[:3], start=1):
-            st.write(f"{idx}. **{name}** - {sim_time:.2f}s")
-        st.markdown("### Full Standings (14s - 32s)")
-        for idx, (name, sim_time) in enumerate(ranking, start=1):
-            st.write(f"{idx}. {name} ({sim_time:.2f}s)")
+        for idx, (name, total_time, avg_lap, best_lap, is_rooted) in enumerate(ranking[:3], start=1):
+            rooted_tag = " [ROOTED]" if is_rooted else ""
+            st.write(
+                f"{idx}. **{name}**{rooted_tag} - Total: {total_time:.2f}s | "
+                f"Avg Lap: {avg_lap:.2f}s | Best Lap: {best_lap:.2f}s"
+            )
+        st.markdown("### Full Standings (Lap-Based Win)")
+        for idx, (name, total_time, avg_lap, best_lap, is_rooted) in enumerate(ranking, start=1):
+            rooted_tag = " [ROOTED]" if is_rooted else ""
+            st.write(
+                f"{idx}. {name}{rooted_tag} (Total: {total_time:.2f}s, Avg: {avg_lap:.2f}s, Best Lap: {best_lap:.2f}s)"
+            )
 def show_world_tour():
     st.markdown("## World Tour Recipe")
-    st.markdown("*Select your starting country, then begin the world tour game!*")
+    st.markdown("*Complete 5 missions first, then haunt enemy teams and unlock recipes!*")
     st.markdown("### Tour Briefing Map")
     map_path = "map-of-the-world.png"
     if os.path.exists(map_path):
@@ -2471,17 +2516,42 @@ def show_world_tour():
     else:
         st.warning("Map file not found: map-of-the-world.png. Add it in the project root to show the world map briefing.")
     tours = [
-        {"location": "Italy", "character": "Mater", "emoji": "\U0001F697", "dish": "Pizza Margherita", "desc": "Traditional Italian pizza with fresh tomatoes, mozzarella, and basil"},
-        {"location": "Philippines", "character": "Sally", "emoji": "\U0001F697", "dish": "Sinigang", "desc": "Sour and savory soup made with tamarind and your choice of meat"},
-        {"location": "Mexico", "character": "Cruz Ramirez", "emoji": "\U0001F3CE\ufe0f", "dish": "Tacos al Pastor", "desc": "Marinated pork tacos with pineapple and cilantro"},
-        {"location": "Japan", "character": "Miles Axelrod", "emoji": "\U0001F697", "dish": "Sushi Platter", "desc": "Fresh sushi with rice, fish, and vegetables"},
-        {"location": "France", "character": "Mater", "emoji": "\U0001F697", "dish": "Croissants", "desc": "Buttery French pastries baked to perfection"},
-        {"location": "USA", "character": "Lightning McQueen", "emoji": "\U0001F3CE\ufe0f", "dish": "BBQ Ribs", "desc": "Slow-smoked ribs with homemade BBQ sauce"},
-        {"location": "Thailand", "character": "Sally", "emoji": "\U0001F697", "dish": "Pad Thai", "desc": "Stir-fried rice noodles with shrimp and peanuts"},
-        {"location": "India", "character": "Cruz Ramirez", "emoji": "\U0001F3CE\ufe0f", "dish": "Butter Chicken", "desc": "Creamy tomato-based curry with tender chicken"},
+        {
+            "location": "England",
+            "language": "English",
+            "character": "Lightning McQueen",
+            "enemy": "The Smog Bandits",
+            "emoji": "\U0001F3CE\ufe0f",
+            "dish": "Shepherd's Pie",
+            "desc": "Savory minced meat pie topped with creamy mashed potatoes.",
+        },
+        {
+            "location": "Philippines",
+            "language": "Filipino",
+            "character": "Sally",
+            "enemy": "Turbo Tricksters",
+            "emoji": "\U0001F697",
+            "dish": "Sinigang",
+            "desc": "Sour and savory tamarind soup with vegetables and meat.",
+        },
+        {
+            "location": "Italy",
+            "language": "Italian",
+            "character": "Mater",
+            "enemy": "Shadow Racers",
+            "emoji": "\U0001F697",
+            "dish": "Pizza Margherita",
+            "desc": "Classic pizza with tomato, mozzarella, and fresh basil.",
+        },
     ]
     if "tour_started" not in st.session_state:
         st.session_state.tour_started = False
+    if "tour_unlocked_recipes" not in st.session_state:
+        st.session_state.tour_unlocked_recipes = []
+    if "tour_completed_missions" not in st.session_state:
+        st.session_state.tour_completed_missions = []
+    if "tour_sent_to_sally_lizzie" not in st.session_state:
+        st.session_state.tour_sent_to_sally_lizzie = False
     if "world_tour_start_location" not in st.session_state:
         st.session_state.world_tour_start_location = tours[0]["location"]
     location_options = [tour["location"] for tour in tours]
@@ -2497,26 +2567,73 @@ def show_world_tour():
     with start_col2:
         if st.button("Reset Tour", width="stretch"):
             st.session_state.tour_started = False
+            st.session_state.tour_unlocked_recipes = []
+            st.session_state.tour_completed_missions = []
+            st.session_state.tour_sent_to_sally_lizzie = False
     if not st.session_state.tour_started:
         st.info("Select a starting country, then press Start World Tour.")
         return
+    import random
+    missions = [
+        "Mission 1: Gather route map fragments",
+        "Mission 2: Decode enemy radio signal",
+        "Mission 3: Protect recipe vault key",
+        "Mission 4: Escort supply truck",
+        "Mission 5: Win the checkpoint sprint",
+    ]
     start_location = st.session_state.world_tour_start_location
     ordered_tours = sorted(tours, key=lambda x: x["location"] != start_location)
     st.success(f"World Tour started from **{start_location}**")
-    cols = st.columns(2)
-    for i, tour in enumerate(ordered_tours):
-        with cols[i % 2]:
-            st.markdown(f"""
-            <div class="recipe-card">
-                <div style="font-size: 50px;">{tour['emoji']}</div>
-                <div class="card-title">{tour['location']}</div>
-                <div class="card-desc">
-                    <strong>Guide:</strong> {tour['character']}<br>
-                    <strong>Dish:</strong> {tour['dish']}<br>
-                    <em>{tour['desc']}</em>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+    st.markdown("### Mission Board")
+    st.write("Mission success chance is **70%** per attempt. Complete all 5 missions before haunting enemies.")
+    st.write(f"Completed missions: **{len(st.session_state.tour_completed_missions)} / 5**")
+    for mission in missions:
+        completed = mission in st.session_state.tour_completed_missions
+        if completed:
+            st.success(f"{mission} - COMPLETE")
+            continue
+        if st.button(f"Attempt {mission}", key=f"mission_{mission}"):
+            if random.random() <= 0.70:
+                st.session_state.tour_completed_missions.append(mission)
+                st.success(f"Success: {mission}")
+            else:
+                st.error(f"Failed: {mission}. Try again.")
+            st.rerun()
+
+    if len(st.session_state.tour_completed_missions) < 5:
+        st.warning("Haunting enemies is locked. Complete all 5 missions first.")
+        return
+
+    st.markdown("### Haunting Phase")
+    st.write("All missions complete. You can now haunt enemies and secure recipes.")
+    for tour in ordered_tours:
+        unlocked = tour["dish"] in st.session_state.tour_unlocked_recipes
+        status = "Unlocked" if unlocked else "Locked"
+        st.markdown(
+            f"#### {tour['emoji']} {tour['location']} ({tour['language']}) - {status}"
+        )
+        st.write(f"Guide: **{tour['character']}** | Enemy Team: **{tour['enemy']}**")
+        st.write(tour["desc"])
+        if unlocked:
+            st.success(f"Recipe unlocked: {tour['dish']}")
+        else:
+            if st.button(f"Haunt Enemies in {tour['location']}", key=f"haunt_{tour['location']}"):
+                st.session_state.tour_unlocked_recipes.append(tour["dish"])
+                st.success(f"You haunted {tour['enemy']} and secured the {tour['dish']} recipe!")
+                st.rerun()
+
+    st.markdown("### Recipe Collection Progress")
+    st.write(f"Unlocked recipes: **{len(st.session_state.tour_unlocked_recipes)} / {len(tours)}**")
+    if len(st.session_state.tour_unlocked_recipes) == len(tours):
+        if not st.session_state.tour_sent_to_sally_lizzie:
+            st.success("All language recipes collected. Final step: send mission and recipe package to Sally and Lizzie.")
+            if st.button("Send Complete Package to Sally and Lizzie", type="primary"):
+                st.session_state.tour_sent_to_sally_lizzie = True
+                st.balloons()
+                st.success("Package delivered to Sally and Lizzie. World Tour complete!")
+                st.rerun()
+        else:
+            st.success("Package already delivered to Sally and Lizzie.")
 
 def show_settings():
     st.markdown("## \u2699\ufe0f Settings")
@@ -2612,9 +2729,27 @@ with st.sidebar.expander("Section Guide", expanded=True):
 - \U0001F1F5\U0001F1ED Filipino Food List - Traditional Filipino dishes
 - \U0001F916 Finn-Holley AI Chatbot - Chat with Finn McMissle, Holley Shiftwell, Rod Redline, or Tomber
 - \U0001F3C1 Event Race - Racing champions with expanded global roster
-- \U0001F30D World Tour Recipe - Start with world map, then explore 8 country food stops
+- \U0001F30D World Tour Recipe - Complete 5 missions, haunt enemies, unlock recipes, then send package to Sally and Lizzie
 - \u2699\ufe0f Settings - Account settings, theme, notifications, language
 """)
+st.sidebar.markdown(
+    """
+<div class="menu-list-box">
+<strong>Menu List</strong><br>
+Home / Welcome<br>
+Login / Register<br>
+Product List<br>
+Radiator Springs Food<br>
+Filipino Food List<br>
+Finn-Holley AI Chatbot<br>
+Event Race<br>
+World Tour Recipe<br>
+Settings<br>
+About
+</div>
+""",
+    unsafe_allow_html=True,
+)
 status = f"Signed in: {st.session_state.username}" if st.session_state.logged_in else "Guest mode"
 st.sidebar.markdown(f"<div class='nav-status'>{status}</div>", unsafe_allow_html=True)
 

@@ -43,10 +43,10 @@ Handles:
 - race-related prompts (e.g., schedule / next racers)
 
 ### 🏁 Event Race
-Expanded race simulation mode with multiple racers, conditions, and standings.
+Expanded race simulation mode with racer rooting, multiple conditions, and lap-based standings.
 
 ### 🌍 World Tour Recipe
-Map-first travel mode where users select a starting country before beginning the tour.
+Mission-first world tour mode with recipe unlock progression.
 
 ### ⚙️ Settings
 Account/status and app preferences.
@@ -66,18 +66,24 @@ App information, version, and contact details.
   - Batangas Racing Circuit (Rosario, Batangas)
   - Fuji Speedway
 - Weather + laps affect simulation
-- Time-based finish model (`14s - 32s`)
-- Podium + full standings output
+- Race mode selection (`Simulator` / `Arcade`)
+- Rooting system: choose racers to support before race start
+- Lap-based finish model (winner is lowest total race time)
+- Podium + full standings output with Total, Avg Lap, and Best Lap
 
 ## 🌍 World Tour Mode
 - Shows `map-of-the-world.png` before tour begins
 - User selects **starting country**
 - `Start World Tour` / `Reset Tour` flow
-- Tour cards reorder from selected starting country
+- Requires completing **5 missions** before haunting phase
+- Each mission attempt has **70% success chance**
+- Haunting phase unlocks language recipes (English, Filipino, Italian)
+- Final delivery step: send completed mission package to **Sally and Lizzie**
 
 ## 🧩 What The App Includes
 
 - Character-themed UI and storytelling
+- Dark navigation/sidebar theme with improved menu visibility
 - Recipe browsing and categories
 - SQLite authentication
 - Admin visibility for user management
@@ -144,6 +150,12 @@ The following issues were identified in the current codebase:
 ## 📝 Recent Updates
 
 ### 2026-04-29
+- Navigation restyled back to dark mode with improved sidebar/menu readability.
+- Replaced deprecated Streamlit `use_container_width` usage with `width="stretch"`.
+- Event Race updated with racer rooting selection and rooted-racer performance boost.
+- Event Race standings now use lap-based total race times (no fixed `14s - 32s` clamp).
+- World Tour updated to mission-gated progression: complete 5 missions first (70% success per attempt), then haunt enemies and unlock recipes.
+- Added final World Tour completion step: send completed package to Sally and Lizzie.
 - Security audit completed; XSS, weak hashing, and hardcoded credential issues documented.
 - Chatbot expanded from 2 to 7 selectable characters (Finn, Holley, Rod, Tomber, Leland, Miles, Mater).
 - Added "The Story of Radiator Springs" narrative page.

@@ -131,163 +131,183 @@ st.markdown("""
 <style>
     /* Main background gradient */
     .stApp {
-        background: linear-gradient(180deg, #ff3b30 0%, #ff9500 50%, #ffcc00 100%);
+        background: radial-gradient(circle at top, #ffd451 0%, #ff9f0d 35%, #ff651f 100%);
         min-height: 100vh;
+        color: #111;
     }
     
     /* Content container styling */
     .main-content {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 20px;
-        padding: 30px;
-        margin: 20px;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        background: rgba(255, 255, 255, 0.92);
+        border-radius: 24px;
+        padding: 32px;
+        margin: 24px;
+        box-shadow: 0 18px 50px rgba(0,0,0,0.18);
     }
     
     /* Sidebar styling (updated look) */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0f172a 0%, #1f2937 55%, #111827 100%);
-        border-right: 1px solid rgba(148, 163, 184, 0.28);
+        background: linear-gradient(180deg, #ffcc00 0%, #ff9f00 45%, #ff6500 100%);
+        border-right: 2px solid rgba(33, 33, 33, 0.45);
+        box-shadow: 0 0 40px rgba(255, 159, 0, 0.25);
     }
 
     [data-testid="stSidebar"] .stMarkdown p,
     [data-testid="stSidebar"] label,
-    [data-testid="stSidebar"] .stCaption {
-        color: #e5e7eb;
-        font-weight: 600;
+    [data-testid="stSidebar"] .stCaption,
+    [data-testid="stSidebar"] .css-1oe7j3f,
+    [data-testid="stSidebar"] .css-1w4pg4i {
+        color: #111;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
     }
 
     [data-testid="stSidebar"] .stSelectbox > div > div,
-    [data-testid="stSidebar"] .stRadio > div {
-        background: rgba(15, 23, 42, 0.55);
-        border: 1px solid rgba(148, 163, 184, 0.35);
-        border-radius: 12px;
-        padding: 8px;
+    [data-testid="stSidebar"] .stRadio > div,
+    [data-testid="stSidebar"] .stTextInput > div > div {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 16px;
+        padding: 10px;
+        color: #111;
     }
 
     [data-testid="stSidebar"] .stRadio [role="radiogroup"] > label {
-        background: rgba(17, 24, 39, 0.78);
-        border: 1px solid rgba(148, 163, 184, 0.35);
-        border-radius: 10px;
-        margin-bottom: 8px;
-        padding: 8px 10px;
-        transition: all 0.2s ease;
+        background: linear-gradient(135deg, #ffdd65 0%, #ff9b00 100%);
+        border: 2px solid rgba(255, 255, 255, 0.45);
+        border-radius: 14px;
+        margin-bottom: 10px;
+        padding: 10px 14px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        color: #111;
+        font-weight: 800;
+        box-shadow: 0 0 12px rgba(255, 173, 51, 0.25);
     }
 
     [data-testid="stSidebar"] .stRadio [role="radiogroup"] > label:hover {
-        border-color: #38bdf8;
-        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.45) inset;
+        border-color: #ff4500;
+        transform: translateX(4px);
+        box-shadow: 0 0 18px rgba(255, 145, 0, 0.55);
+    }
+
+    [data-testid="stSidebar"] .stRadio [role="radiogroup"] > label[aria-checked="true"] {
+        background: linear-gradient(135deg, #ffcc00 0%, #ff8c00 100%);
+        color: #111;
+        border-color: #ff3b30;
+        box-shadow: 0 0 22px rgba(255, 136, 0, 0.55);
     }
 
     .nav-status {
-        background: rgba(15, 23, 42, 0.72);
-        border: 1px solid rgba(148, 163, 184, 0.35);
-        border-radius: 12px;
-        padding: 10px 12px;
-        margin-bottom: 12px;
-        color: #e5e7eb;
+        background: linear-gradient(135deg, #fff2a4, #ffb93f);
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 14px;
+        padding: 12px 14px;
+        margin-bottom: 16px;
+        color: #111;
         font-size: 14px;
-        font-weight: 700;
+        font-weight: 800;
+        box-shadow: 0 0 20px rgba(255, 152, 0, 0.25);
     }
 
     .menu-list-box {
-        background: rgba(15, 23, 42, 0.72);
-        border: 1px solid rgba(148, 163, 184, 0.35);
-        border-radius: 12px;
-        padding: 10px 12px;
-        color: #e5e7eb;
-        font-size: 13px;
-        line-height: 1.5;
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 16px;
+        padding: 14px 16px;
+        color: #111;
+        font-size: 14px;
+        line-height: 1.6;
+        box-shadow: 0 0 18px rgba(255, 201, 71, 0.18);
     }
     
     /* Hero box */
     .hero-box {
-        background: linear-gradient(135deg, #ff3b30, #ff9500);
-        padding: 40px;
-        border-radius: 25px;
-        color: white;
+        background: linear-gradient(135deg, #ffd34d, #ff9f00);
+        padding: 44px;
+        border-radius: 26px;
+        color: #111;
         text-align: center;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        animation: fadeIn 1.2s ease-in-out;
+        box-shadow: 0 12px 30px rgba(255, 142, 0, 0.22);
+        animation: glow 2.8s ease-in-out infinite alternate, fadeIn 1.2s ease-in-out;
     }
 
     .hero-title {
-        font-size: 48px;
-        font-weight: 800;
+        font-size: 52px;
+        font-weight: 900;
     }
 
     .hero-subtitle {
         font-size: 22px;
         margin-top: 10px;
+        color: #111;
     }
 
     /* Recipe cards */
     .recipe-card {
-        background: white;
+        border: 1px solid rgba(255, 149, 0, 0.25);
+        background: linear-gradient(180deg, #fff8e8 0%, #ffe8c2 100%);
         padding: 25px;
         border-radius: 20px;
-        box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+        box-shadow: 0 6px 15px rgba(255, 150, 0, 0.14);
         transition: 0.3s;
         text-align: center;
         margin-bottom: 20px;
+        color: #111;
     }
 
     .recipe-card:hover {
         transform: translateY(-8px);
-        box-shadow: 0 12px 20px rgba(0,0,0,0.18);
-    }
-
-    .recipe-card {
-        border: 1px solid rgba(255, 149, 0, 0.25);
-        background: linear-gradient(180deg, #ffffff 0%, #fff7ed 100%);
+        box-shadow: 0 12px 20px rgba(255, 145, 0, 0.22);
     }
 
     .card-title {
         font-size: 24px;
         font-weight: 700;
-        color: #d62828;
+        color: #111;
     }
 
     .card-desc {
         font-size: 16px;
-        color: #444;
+        color: #333;
     }
 
     /* Character cards */
     .character-card {
-        background: linear-gradient(135deg, #fff7e6, #ffe6cc);
+        background: linear-gradient(135deg, #fff3cc, #ffdaa1);
         padding: 30px;
         border-radius: 20px;
         text-align: center;
         border: 3px solid #ff9500;
+        color: #111;
     }
 
     .character-name {
         font-size: 28px;
         font-weight: 800;
-        color: #ff3b30;
+        color: #b03d00;
     }
 
     .character-quote {
         font-size: 18px;
         font-style: italic;
-        color: #666;
+        color: #333;
         margin-top: 10px;
     }
 
     /* Product cards */
     .product-card {
-        background: white;
+        background: linear-gradient(135deg, #fff8e0 0%, #fff1c0 100%);
         padding: 20px;
         border-radius: 15px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 14px rgba(255, 140, 0, 0.14);
         text-align: center;
         transition: 0.3s;
+        color: #111;
     }
 
     .product-card:hover {
         transform: scale(1.05);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        box-shadow: 0 8px 20px rgba(255, 140, 0, 0.2);
     }
 
     .product-emoji {
@@ -297,36 +317,61 @@ st.markdown("""
     .product-name {
         font-size: 20px;
         font-weight: 700;
-        color: #d62828;
+        color: #b24600;
         margin: 10px 0;
     }
 
     .product-price {
         font-size: 24px;
         font-weight: 800;
-        color: #ff9500;
+        color: #ff7f00;
     }
 
     /* Chatbot styling */
-    .chat-message {
-        padding: 15px;
-        border-radius: 15px;
-        margin: 10px 0;
+    .chat-panel {
+        background: linear-gradient(135deg, #fff7d4, #ffd35b);
+        border-radius: 24px;
+        padding: 22px;
+        margin-bottom: 24px;
+        box-shadow: 0 16px 36px rgba(255, 154, 0, 0.18);
+    }
+
+    .chat-header {
+        font-size: 24px;
+        font-weight: 900;
+        color: #111;
+        margin-bottom: 10px;
+    }
+
+    .chat-hint {
         color: #333;
+        font-size: 15px;
+        margin-bottom: 18px;
+    }
+
+    .chat-message {
+        padding: 18px;
+        border-radius: 24px;
+        margin: 12px 0;
+        color: #111;
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 10px 26px rgba(255, 152, 0, 0.14);
     }
 
     .chat-user {
-        background: linear-gradient(135deg, #ff9500, #ffcc00);
+        background: linear-gradient(135deg, #fff1b8, #ffb83d);
         text-align: right;
-        color: #fff;
-        font-weight: bold;
+        color: #111;
+        font-weight: 700;
+        border: 1px solid rgba(255, 148, 0, 0.35);
     }
 
     .chat-bot {
-        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        background: linear-gradient(135deg, #1f2937, #111827);
         text-align: left;
         color: #fff;
-        border: 2px solid #ff3b30;
+        border: 2px solid #ffb347;
+        box-shadow: 0 10px 20px rgba(255, 161, 0, 0.15);
     }
 
     .chat-bot strong {
@@ -334,52 +379,113 @@ st.markdown("""
     }
 
     .chat-user strong {
-        color: #fff;
+        color: #111;
+    }
+
+    /* Settings styling */
+    .settings-card {
+        background: linear-gradient(135deg, #fff4cc, #ffc55f);
+        border-radius: 24px;
+        padding: 24px;
+        margin-bottom: 28px;
+        box-shadow: 0 18px 38px rgba(255, 160, 0, 0.18);
+        border: 1px solid rgba(255, 155, 0, 0.22);
+    }
+
+    .settings-title {
+        font-size: 30px;
+        font-weight: 900;
+        margin-bottom: 8px;
+        color: #111;
+    }
+
+    .settings-subtitle {
+        color: #333;
+        font-size: 16px;
+        margin-bottom: 18px;
+    }
+
+    .settings-block {
+        background: rgba(255,255,255,0.94);
+        border-radius: 18px;
+        padding: 18px;
+        border: 1px solid rgba(255, 150, 0, 0.22);
+        margin-bottom: 18px;
+    }
+
+    .settings-block h3 {
+        margin-top: 0;
+        color: #111;
+    }
+
+    /* World tour mission boards */
+    .world-tour-card {
+        background: linear-gradient(135deg, #fff5d6, #ffcc76);
+        border-radius: 24px;
+        padding: 22px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(255, 148, 0, 0.28);
+        box-shadow: 0 16px 34px rgba(255, 158, 0, 0.18);
+    }
+
+    .mission-board {
+        background: linear-gradient(135deg, #fff8e7, #ffd69a);
+        border-radius: 22px;
+        padding: 18px;
+        margin-bottom: 18px;
+        border: 1px dashed rgba(255, 145, 0, 0.3);
+    }
+
+    .mission-board strong {
+        color: #111;
     }
 
     /* Character selection buttons */
     .char-btn {
-        background: linear-gradient(135deg, #ff3b30, #ff9500);
-        color: white;
+        background: linear-gradient(135deg, #ffcc00, #ff9f00);
+        color: #111;
         border: none;
         padding: 15px 20px;
-        border-radius: 15px;
-        font-weight: bold;
+        border-radius: 18px;
+        font-weight: 800;
         cursor: pointer;
         transition: 0.3s;
+        box-shadow: 0 8px 18px rgba(255, 154, 0, 0.2);
     }
 
     .char-btn:hover {
         transform: scale(1.05);
-        box-shadow: 0 5px 15px rgba(255, 59, 48, 0.4);
+        box-shadow: 0 10px 24px rgba(255, 146, 0, 0.34);
     }
 
     .char-btn.active {
-        background: linear-gradient(135deg, #ffcc00, #ff9500);
-        border: 3px solid #ff3b30;
+        background: linear-gradient(135deg, #ffd54f, #ff9a00);
+        border: 3px solid #ff7a00;
+        color: #111;
     }
 
     /* Race cards */
     .race-card {
-        background: linear-gradient(135deg, #0f172a, #1e293b);
+        background: linear-gradient(135deg, #ffe5b4, #ffaf2f);
         padding: 30px;
-        border-radius: 20px;
-        color: white;
+        border-radius: 24px;
+        color: #111;
         text-align: center;
-        border: 3px solid #ff3b30;
-        box-shadow: 0 10px 24px rgba(2, 6, 23, 0.45);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 3px solid rgba(255, 137, 0, 0.4);
+        box-shadow: 0 18px 38px rgba(255, 154, 0, 0.22);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
     .race-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 14px 28px rgba(2, 6, 23, 0.55);
+        transform: translateY(-8px) scale(1.01);
+        box-shadow: 0 24px 46px rgba(255, 155, 0, 0.35);
+        border-color: #ff8c00;
     }
 
     .race-name {
         font-size: 24px;
         font-weight: 800;
-        color: #ffcc00;
+        color: #111;
     }
 
     .race-car {
@@ -393,12 +499,18 @@ st.markdown("""
     }
 
     .stButton > button {
-        background: linear-gradient(135deg, #ff3b30, #ff9500);
-        color: white;
-        border-radius: 10px;
+        background: linear-gradient(135deg, #ffcc00, #ff9500);
+        color: #111;
+        border-radius: 12px;
         font-weight: bold;
-        border: 1px solid rgba(255,255,255,0.2);
-        box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+        border: 1px solid rgba(0,0,0,0.12);
+        box-shadow: 0 8px 18px rgba(255, 145, 0, 0.24);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px rgba(255, 145, 0, 0.32);
     }
 
     /* Tab styling */
@@ -407,14 +519,27 @@ st.markdown("""
     }
 
     .stTabs [data-baseweb="tab"] {
-        background: rgba(255,255,255,0.3);
-        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(255, 204, 75, 0.9), rgba(255, 149, 0, 0.9));
+        border-radius: 14px;
         padding: 10px 20px;
+        color: #111;
+        font-weight: 700;
+        box-shadow: 0 6px 14px rgba(255, 150, 0, 0.18);
+    }
+
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        background: linear-gradient(135deg, #ffcc00, #ff9f00);
+        color: #111;
     }
 
     @keyframes fadeIn {
         from {opacity: 0; transform: translateY(20px);}
         to {opacity: 1; transform: translateY(0);}
+    }
+
+    @keyframes glow {
+        from {box-shadow: 0 12px 30px rgba(255, 142, 0, 0.22);}
+        to {box-shadow: 0 18px 40px rgba(255, 196, 0, 0.35);}
     }
 
     @keyframes race {
@@ -2271,10 +2396,12 @@ def get_character_fallback(user_input, character):
 
 
 def show_chatbot():
-    st.markdown("## 🤖 Finn-Holley AI Chatbot")
-    st.markdown("*Ask about any recipe - including Filipino recipes!*")
-    
-    # Character selection
+    st.markdown("""
+    <div class='chat-panel'>
+        <div class='chat-header'>🤖 Finn-Holley AI Chatbot</div>
+        <div class='chat-hint'>Pick your favorite character, ask about recipes and race strategy, and enjoy the glowing orange-yellow Finn-Holley interface with all emojis intact.</div>
+    </div>
+    """, unsafe_allow_html=True)
     st.markdown("### Choose Your Character:")
     
     characters = {
@@ -2372,7 +2499,11 @@ def show_chatbot():
 
 def show_event_race():
     st.markdown("## Event Race")
-    st.markdown("*Meet the racing champions and run an improved race simulator mode!*")
+    st.markdown("""
+    <div class='mission-board'>
+        Race the champions in warm orange and yellow glow mode. The event boxes now flex with a glowing gradient style, and every racer card shines like sunrise.
+    </div>
+    """, unsafe_allow_html=True)
     racers = [
         {"name": "Lightning McQueen", "emoji": "\U0001F3CE\ufe0f", "color": "#ff3b30", "desc": "The red racing legend - 5-time Piston Cup Champion!"},
         {"name": "Francesco Bernoulli", "emoji": "\U0001F3CE\ufe0f", "color": "#0066cc", "desc": "The Italian speedster - Lightning's biggest rival!"},
@@ -2401,9 +2532,9 @@ def show_event_race():
     for i, racer in enumerate(racers):
         with cols[i % 3]:
             st.markdown(f"""
-            <div class="race-card" style="border-color: {racer['color']};">
+            <div class="race-card" style="border-color: {racer['color']}; background: linear-gradient(135deg, #fff1be, #ffab00);">
                 <div class="racing" style="font-size: 80px;">{racer['emoji']}</div>
-                <div class="race-name" style="color: {racer['color']};">{racer['name']}</div>
+                <div class="race-name" style="color: #111;">{racer['name']}</div>
                 <div class="character-quote">{racer['desc']}</div>
             </div>
             """, unsafe_allow_html=True)
@@ -2508,7 +2639,7 @@ def show_event_race():
             )
 def show_world_tour():
     st.markdown("## World Tour Recipe")
-    st.markdown("*Complete 5 missions first, then haunt enemy teams and unlock recipes!*")
+    st.markdown("*Complete 5 missions first, then haunt enemy teams against the Lemons and Clippers to unlock recipes!*")
     st.markdown("### Tour Briefing Map")
     map_path = "map-of-the-world.png"
     if os.path.exists(map_path):
@@ -2520,7 +2651,7 @@ def show_world_tour():
             "location": "England",
             "language": "English",
             "character": "Lightning McQueen",
-            "enemy": "The Smog Bandits",
+            "enemy": "The Lemons",
             "emoji": "\U0001F3CE\ufe0f",
             "dish": "Shepherd's Pie",
             "desc": "Savory minced meat pie topped with creamy mashed potatoes.",
@@ -2529,7 +2660,7 @@ def show_world_tour():
             "location": "Philippines",
             "language": "Filipino",
             "character": "Sally",
-            "enemy": "Turbo Tricksters",
+            "enemy": "The Clippers",
             "emoji": "\U0001F697",
             "dish": "Sinigang",
             "desc": "Sour and savory tamarind soup with vegetables and meat.",
@@ -2538,7 +2669,7 @@ def show_world_tour():
             "location": "Italy",
             "language": "Italian",
             "character": "Mater",
-            "enemy": "Shadow Racers",
+            "enemy": "The Lemons",
             "emoji": "\U0001F697",
             "dish": "Pizza Margherita",
             "desc": "Classic pizza with tomato, mozzarella, and fresh basil.",
@@ -2585,7 +2716,7 @@ def show_world_tour():
     ordered_tours = sorted(tours, key=lambda x: x["location"] != start_location)
     st.success(f"World Tour started from **{start_location}**")
     st.markdown("### Mission Board")
-    st.write("Mission success chance is **70%** per attempt. Complete all 5 missions before haunting enemies.")
+    st.markdown("<div class='mission-board'><strong>Mission success chance is 70% per attempt.</strong> Complete all 5 missions before haunting enemy teams against the Lemons and Clippers.</div>", unsafe_allow_html=True)
     st.write(f"Completed missions: **{len(st.session_state.tour_completed_missions)} / 5**")
     for mission in missions:
         completed = mission in st.session_state.tour_completed_missions
@@ -2636,9 +2767,16 @@ def show_world_tour():
             st.success("Package already delivered to Sally and Lizzie.")
 
 def show_settings():
-    st.markdown("## \u2699\ufe0f Settings")
-    st.markdown("### \U0001F464 Account Settings")
+    st.markdown("""
+    <div class='settings-card'>
+        <div class='settings-title'>⚙️ Settings</div>
+        <div class='settings-subtitle'>Customize your Radiator Springs experience with glowing orange and yellow theme controls.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("### 👤 Account Settings")
     if st.session_state.logged_in:
+        st.markdown("<div class='settings-block'>", unsafe_allow_html=True)
         st.write(f"**Logged in as:** {st.session_state.username}")
         st.write(f"**Role:** {st.session_state.role}")
         if st.button("Logout"):
@@ -2646,14 +2784,19 @@ def show_settings():
             st.session_state.username = ""
             st.session_state.role = "user"
             st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
     else:
         st.warning("Please login to access account settings!")
-    st.markdown("### \U0001F3A8 Theme Settings")
-    st.write("Background Theme: Red, Orange, Yellow Gradient")
-    st.markdown("### \U0001F514 Notification Settings")
+
+    st.markdown("### 🎨 Theme Settings")
+    theme_choice = st.radio("Theme palette:", ["Orange & Yellow Glow", "Classic Radiator Springs", "Night Racer"])
+    st.write(f"Selected theme: **{theme_choice}**")
+
+    st.markdown("### 🔔 Notification Settings")
     st.checkbox("Email notifications", value=True)
     st.checkbox("Recipe updates", value=True)
-    st.markdown("### \U0001F310 Language")
+
+    st.markdown("### 🌍 Language")
     st.selectbox("Select Language:", ["English", "Filipino", "Spanish", "Italian", "Japanese"])
 def show_about():
     st.markdown("## \u2139\ufe0f About")

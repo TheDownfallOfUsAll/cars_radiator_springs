@@ -35,12 +35,14 @@ Traditional Filipino dishes and entries.
 
 ### 🤖 Finn-Holley AI Chatbot
 Character-style assistant with 7 selectable personalities:
-- Finn McMissle, Holley Shiftwell, Rod Redline, Tomber, Leland Turbo, Miles Axelrod, Mater
+- 🎩 Finn McMissle, 💫 Holley Shiftwell, 🔧 Rod Redline, 🚙 Tomber, ⚡ Leland Turbo, 🚗 Miles Axelrod, 🚜 Mater
 
-Handles:
-- recipe questions
+Features improved orange/yellow glow design with preserved emojis. Handles:
+- recipe questions and cooking guidance
 - greetings (English/Tagalog flow)
 - race-related prompts (e.g., schedule / next racers)
+- Quick recipe suggestion buttons for fast navigation
+
 
 ### 🏁 Event Race
 Expanded race simulation mode with racer rooting, multiple conditions, and lap-based standings.
@@ -58,6 +60,7 @@ App information, version, and contact details.
 
 ## 🏁 Event Race Mode
 - Large racer roster (22 drivers: classic + added world racers)
+- **New Orange/Yellow Card Design**: All racer cards now feature warm orange/yellow gradients with glow effects and improved hover animations
 - Track selection includes:
   - Radiator Springs Speedway
   - Coastal Circuit
@@ -75,21 +78,27 @@ App information, version, and contact details.
 - Shows `map-of-the-world.png` before tour begins
 - User selects **starting country**
 - `Start World Tour` / `Reset Tour` flow
-- Requires completing **5 missions** before haunting phase
+- Requires completing **5 missions** before haunting enemy teams
 - Each mission attempt has **70% success chance**
+- **Enemy Teams**: Haunt **The Lemons** and **The Clippers** across different locations
 - Haunting phase unlocks language recipes (English, Filipino, Italian)
 - Final delivery step: send completed mission package to **Sally and Lizzie**
+- All mission boards and tour cards feature warm orange/yellow glow styling
 
 ## 🧩 What The App Includes
 
+- **Orange & Yellow Gradient Navigation**: Sidebar now features a vibrant orange-to-yellow gradient with glow effects and black text for clarity
+- **Glowing Flex Animations**: Cards and components feature animated glow effects that pulse between orange and yellow
+- **Bright Card Designs**: All cards use warm orange/yellow gradients with black text on bright backgrounds for maximum contrast and readability
 - Character-themed UI and storytelling
-- Dark navigation/sidebar theme with improved menu visibility
 - Recipe browsing and categories
-- SQLite authentication
-- Admin visibility for user management
-- Recipe chatbot experience with 7 characters
-- Race mode and world-tour mode
+- SQLite authentication with admin support
+- Advanced Recipe Chatbot with 7 selectable characters (emojis preserved)
+- Enhanced Race mode with orange/yellow themed cards
+- World Tour mode with Lemons and Clippers as enemy teams
 - Expanded Filipino and Radiator Springs recipe knowledge base
+- Improved Settings tab with themed cards and options
+
 
 ## 🛠 Tech Stack
 
@@ -148,6 +157,19 @@ The following issues were identified in the current codebase:
 - `cars_2_martin_(tow_mater).png` — Mater character image
 
 ## 📝 Recent Updates
+
+### 2026-05-04
+- **Design Overhaul**: Complete transition to orange & yellow gradient theme with glow flex animations
+- Navigation sidebar now features orange-to-yellow gradient background with glow shadow effects
+- All navigation buttons and radio selectors use bright gradients with black text on light backgrounds
+- Updated Event Race cards from navy to orange/yellow gradient with hover glow effects
+- Updated Settings tab with polished orange/yellow styled settings cards and improved UI
+- Updated Finn-Holley AI Chatbot design with improved styling while preserving all emojis (🤖, 🎩, 💫, 🔧, 🚙, etc.)
+- World Tour updated with specific enemy teams: **Lemons** and **Clippers** (vs. generic "enemies")
+- All hero boxes, recipe cards, character cards, and product cards now use warm orange/yellow gradients with black text
+- Added animated glow effects to hero boxes and cards with pulsing shadow animations
+- Tabs and buttons throughout app now styled with orange/yellow gradients and glow effects
+- Mission success chance remains **70% per attempt** with improved mission board styling
 
 ### 2026-04-29
 - Navigation restyled back to dark mode with improved sidebar/menu readability.

@@ -4,6 +4,7 @@ import hashlib
 import os
 import re
 import difflib
+import random
 from datetime import datetime
 
 # ==========================================================
@@ -369,15 +370,15 @@ st.markdown("""
     }
 
     .chat-bot {
-        background: linear-gradient(135deg, #1f2937, #111827);
+        background: linear-gradient(135deg, #ffe08a, #ffb347);
         text-align: left;
-        color: #fff;
-        border: 2px solid #ffb347;
-        box-shadow: 0 10px 20px rgba(255, 161, 0, 0.15);
+        color: #111;
+        border: 2px solid #ff9f00;
+        box-shadow: 0 10px 20px rgba(255, 161, 0, 0.18);
     }
 
     .chat-bot strong {
-        color: #ffcc00;
+        color: #111;
     }
 
     .chat-user strong {
@@ -2288,21 +2289,53 @@ RECIPE_KNOWLEDGE = {
 def generate_ai_response(user_input, character):
     """Generate AI response using recipe knowledge base or Ollama/GPT"""
     user_input_lower = user_input.lower()
+    responder_aliases = {
+        "finn": "Finn McMissle",
+        "holley": "Holley Shiftwell",
+        "rod": "Rod Redline",
+        "tomber": "Tomber",
+        "leland": "Leland Turbo",
+        "miles": "Miles Axelrod",
+        "mater": "Mater",
+        "zundapp": "Professor Zundapp",
+        "professor zundapp": "Professor Zundapp",
+        "lightning": "Lightning McQueen",
+        "mcqueen": "Lightning McQueen",
+        "jackson": "Jackson Storm",
+        "storm": "Jackson Storm",
+    }
+    for alias, responder in responder_aliases.items():
+        if alias in user_input_lower:
+            character = responder
+            break
+    if contains_profanity(user_input):
+        return (
+            f"{character}: I can't respond to swearing or cuss words.\n"
+            "Please ask your question again in a respectful way, and I will help right away."
+        )
 
     greeting_tokens = [
         "hello", "hi", "good morning", "good afternoon", "good evening",
         "magandang umaga", "maayong buntag", "maayong udto", "udto", "maayong gabii", "gabii"
     ]
     if any(token in user_input_lower for token in greeting_tokens):
-        return (
-            f"Hi! Kumusta! I'm {character}.\n\n"
-            "Good to see you. Magandang araw!\n"
-            "Pwede kitang tulungan sa recipes at race schedule.\n\n"
-            "Ask me in English or Tagalog:\n"
-            "- How do I cook Adobo?\n"
-            "- Ano ang ingredients ng Sinigang?\n"
-            "- Who is racing next in Event Race?"
-        )
+        greeting_options = [
+            (
+                f"Hi! Kumusta! I'm {character}.\n\n"
+                "Good to see you. Magandang araw!\n"
+                "Pwede kitang tulungan sa recipes at race schedule.\n\n"
+                "Ask me in English or Tagalog:\n"
+                "- How do I cook Adobo?\n"
+                "- Ano ang ingredients ng Sinigang?\n"
+                "- Who is racing next in Event Race?"
+            ),
+            (
+                f"Hello from {character}!\n\n"
+                "I can answer food, racing, and smart suggestions in real time.\n"
+                "Try: Adobo recipe, race schedule, or quick dinner ideas."
+            ),
+        ]
+        return get_non_repeating_response(greeting_options)
 
     race_names = [
         "lightning mcqueen", "francesco bernoulli", "jackson storm", "cal weathers",
@@ -2404,7 +2437,10 @@ def get_character_response(recipe_info, character):
         "Tomber": "*whirs around* Revving up to tell you about this dish! Here's what I know... I'm a 3-wheel wonder, but I know my way around the kitchen!",
         "Leland Turbo": "*speeds in* Speed and flavor - that's what I'm about! Let me share this recipe...",
         "Miles Axelrod": "As an expert on alternative fuels and flavors, this recipe is fascinating...",
-        "Mater": "*honks* Howdy partner! I may be a tow truck, but I know GOOD food! Let me share this recipe with ya..."
+        "Mater": "*honks* Howdy partner! I may be a tow truck, but I know GOOD food! Let me share this recipe with ya...",
+        "Professor Zundapp": "Observe carefully. I shall analyze this recipe with precision and detail.",
+        "Lightning McQueen": "Ka-chow! Let's cook this one fast and clean, champion style!",
+        "Jackson Storm": "Efficient. Focused. High performance cooking data incoming."
     }
     
     intro = character_personalities.get(character, "Here's what I know about that recipe:")
@@ -2414,15 +2450,45 @@ def get_character_response(recipe_info, character):
 def get_character_fallback(user_input, character):
     """Fallback responses when recipe not found"""
     fallbacks = {
-        "Finn McMissle": f"Interesting question about '{user_input}'! As a former spy, I've encountered many recipes in my missions. While I don't have specific details on that one, I'd recommend exploring Filipino cuisine - dishes like Sinigang, Adobo, or Halo-Halo are absolutely fantastic! Would you like me to share a recipe for any of these?",
-        "Holley Shiftwell": f"Great question about '{user_input}'! My database contains information on many delicious recipes. I can help you with Filipino classics like Sinigang (sour soup), Adobo (braised meat), or the refreshing Halo-Halo dessert! What would you like to know more about?",
-        "Rod Redline": f"Ha! That's a good one about '{user_input}'! As the chief mechanic, I know my way around flavor just like I know my way around engines. Filipino food is the best - try Sinigang, Adobo, or Lechon! Need recipes for any of these?",
-        "Tomber": f"Revving up here! Love that you're interested in '{user_input}'! I may be a big rig, but I know good food when I see it. Filipino cuisine has amazing dishes - Adobo, Sinigang, Pancit, Kare-Kare! Which one catches your eye?",
-        "Leland Turbo": f"*speeds in excitedly* Ka-chow! Love the question about '{user_input}'! As the fastest car in the world, I can tell you that speed matters in racing AND in cooking! Filipino food is incredible - try the spicy Bicol Express or the sweet Halo-Halo! Want a recipe?",
-        "Miles Axelrod": f"Ah, '{user_input}' - a fascinating question! As someone who explores new territories, I've discovered that Filipino cuisine offers incredible diversity. From the sour Sinigang to the rich Kare-Kare, there's something for everyone. Which dish interests you?",
-        "Mater": f"*beep beep* Well, butter my belly button! You're asking about '{user_input}'? I may just be a tow truck, but I know GOOD EATS! Try some Filipino food - we got Sinigang, Adobo, Lechon, Longganisa, Tocino, Champorado... the list goes on! Want me to share a recipe? Yee-haw!"
+        "Finn McMissle": f"Interesting question about '{user_input}'. I can suggest Sinigang, Adobo, or Halo-Halo. Which one do you want?",
+        "Holley Shiftwell": f"Great question about '{user_input}'. I can help with Sinigang, Adobo, or Halo-Halo. What should we explore first?",
+        "Rod Redline": f"Nice one about '{user_input}'. Try Sinigang, Adobo, or Lechon. Need one full recipe now?",
+        "Tomber": f"Love that topic: '{user_input}'. Try Adobo, Sinigang, Pancit, or Kare-Kare. Pick one and I will guide you.",
+        "Leland Turbo": f"Ka-chow! For '{user_input}', I recommend Bicol Express for spicy or Halo-Halo for sweet. Which lane do you choose?",
+        "Miles Axelrod": f"For '{user_input}', I recommend Sinigang or Kare-Kare for rich flavor. Want ingredients or full steps?",
+        "Mater": f"For '{user_input}', I can share Sinigang, Adobo, Lechon, or Champorado. Tell me what you're craving!",
+        "Professor Zundapp": f"Your query '{user_input}' is accepted. Choose Adobo, Sinigang, or Pancit for tactical cooking guidance.",
+        "Lightning McQueen": f"Ka-chow! For '{user_input}', pick Adobo or Garlic Fried Rice for a quick win. Want fast steps?",
+        "Jackson Storm": f"Processing '{user_input}'. Fast options: Tocino, Longganisa, or Pancit Canton. Select one target dish."
     }
-    return fallbacks.get(character, f"I'd be happy to help with '{user_input}'! Try asking about Filipino dishes like Sinigang, Adobo, or Halo-Halo!")
+    default_options = [
+        f"I can help with '{user_input}'. Ask for recipe steps, ingredients, or race info.",
+        f"Let's solve '{user_input}' together. Want food suggestions or Event Race tips?",
+        f"I understand '{user_input}'. I can give a quick recipe recommendation right now."
+    ]
+    return fallbacks.get(character, get_non_repeating_response(default_options))
+
+
+def contains_profanity(text):
+    bad_words = {
+        "fuck", "fucking", "shit", "bitch", "asshole", "bastard", "damn", "crap", "puta", "gago",
+        "tanga", "ulol", "pakyu", "motherfucker"
+    }
+    text_norm = normalize_text(text)
+    text_tokens = set(text_norm.split())
+    return any(word in text_tokens for word in bad_words)
+
+
+def get_non_repeating_response(options):
+    if 'response_memory' not in st.session_state:
+        st.session_state.response_memory = []
+    previous = st.session_state.response_memory[-1] if st.session_state.response_memory else ""
+    candidates = [opt for opt in options if opt != previous]
+    selected = random.choice(candidates if candidates else options)
+    st.session_state.response_memory.append(selected)
+    if len(st.session_state.response_memory) > 20:
+        st.session_state.response_memory = st.session_state.response_memory[-20:]
+    return selected
 
 
 def normalize_text(text):
@@ -2516,6 +2582,24 @@ def generate_agentic_response_if_needed(user_input, character):
 
 def show_chatbot():
     st.markdown("""
+    <style>
+    .chatbot-character-row .stButton > button,
+    .chatbot-character-row .stButton > button[kind="primary"],
+    .chatbot-character-row .stButton > button[data-testid="stBaseButton-primary"] {
+        background: linear-gradient(135deg, #ffd84d, #ff9f00) !important;
+        color: #111 !important;
+        border: 2px solid rgba(0, 0, 0, 0.18) !important;
+        border-radius: 14px !important;
+        font-weight: 800 !important;
+        box-shadow: 0 8px 18px rgba(255, 153, 0, 0.26) !important;
+    }
+    .chatbot-character-row .stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px rgba(255, 153, 0, 0.34) !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    st.markdown("""
     <div class='chat-panel'>
         <div class='chat-header'>🤖 Finn-Holley AI Chatbot</div>
         <div class='chat-hint'>Pick your favorite character, ask about recipes and race strategy, and enjoy the glowing orange-yellow Finn-Holley interface with all emojis intact.</div>
@@ -2533,17 +2617,37 @@ def show_chatbot():
         "Mater": "🚜"
     }
     
+    characters = {
+        "Finn McMissle": "\U0001F3A9",
+        "Holley Shiftwell": "\U0001F4AB",
+        "Rod Redline": "\U0001F527",
+        "Tomber": "\U0001F699",
+        "Leland Turbo": "\u26A1",
+        "Miles Axelrod": "\U0001F697",
+        "Mater": "\U0001F69C",
+        "Professor Zundapp": "\U0001F9EA",
+        "Lightning McQueen": "\U0001F3CE\uFE0F",
+        "Jackson Storm": "\U0001F5A4",
+    }
+
     selected_char = st.session_state.get('chatbot_char', "Finn McMissle")
     
     # Create styled character buttons
-    char_cols = st.columns(7)
+    st.markdown("<div class='chatbot-character-row'>", unsafe_allow_html=True)
+    char_cols = st.columns(5)
     for i, (name, emoji) in enumerate(characters.items()):
-        with char_cols[i]:
+        with char_cols[i % 5]:
             is_active = selected_char == name
-            btn_style = "border: 3px solid #ff3b30;" if is_active else ""
-            if st.button(f"{emoji} {name}", key=f"char_{name}", help=f"Chat with {name}"):
+            button_label = f"{emoji} {name}" + (" ✓" if is_active else "")
+            if st.button(
+                button_label,
+                key=f"char_{name}",
+                help=f"Chat with {name}",
+                type="primary",
+            ):
                 st.session_state.chatbot_char = name
                 st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
     
     st.markdown(f"### Currently chatting with: {characters.get(selected_char, '🎩')} **{selected_char}**")
     
@@ -2918,32 +3022,48 @@ def show_settings():
     st.markdown("### 🌍 Language")
     st.selectbox("Select Language:", ["English", "Filipino", "Spanish", "Italian", "Japanese"])
 def show_about():
-    st.markdown("## \u2139\ufe0f About")
-    st.markdown("""
-### \U0001F697 Cars Radiator Springs - Home Of The Recipe
-Welcome to the ultimate Cars-themed recipe application!
-**Created with love by:** The Radiator Springs Team
-**Characters Featured:**
-- \u26a1 Lightning McQueen - The fastest race car in the world
-- \U0001F69C Mater - The best tow truck in town
-- \U0001F697 Sally Carrera - The beautiful blue Porsche
-- \U0001F4AB Holley Shiftwell - The tech-savvy spy
-- \U0001F3A9 Finn McMissle - The legendary spy car
-- \U0001F3CE\ufe0f Cruz Ramirez - The trainer and racing champion
-**Features:**
-- \U0001F354 Radiator Springs Recipes
-- \U0001F1F5\U0001F1ED Authentic Filipino Dishes
-- \U0001F916 AI Chatbot with Finn & Holley
-- \U0001F3C1 Racing Events
-- \U0001F30D World Tour Recipes
-**Version:** 1.0.0
----
-*Ka-chow! \U0001F3C1*
-""")
-    st.markdown("### \U0001F4F1 Contact Us")
-    st.write("\U0001F4E7 Email: hello@radiatorsprings.com")
-    st.write("\U0001F4DE Phone: 1-800-KA-CHOW")
-    st.write("\U0001F4CD Location: Radiator Springs, Arizona")
+    st.markdown(
+        """
+    <div class='settings-card'>
+        <div class='settings-title'>ℹ️ About Radiator Springs</div>
+        <div class='settings-subtitle'>Story, features, and release details of the Cars Radiator Springs app.</div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    left_col, right_col = st.columns([2, 1])
+    with left_col:
+        st.markdown(
+            """
+        <div class='settings-block'>
+            <h3>🚗 Cars Radiator Springs - Home Of The Recipe</h3>
+            <p>Welcome to the Cars-themed recipe and adventure experience built by the Radiator Springs Team.</p>
+            <p><strong>Main Characters:</strong> ⚡ Lightning McQueen, 🚜 Mater, 🚗 Sally Carrera, 💫 Holley Shiftwell, 🎩 Finn McMissle, 🏎️ Cruz Ramirez</p>
+            <p><strong>Chatbot Responders:</strong> 🎩 Finn McMissle, 💫 Holley Shiftwell, 🔧 Rod Redline, 🚙 Tomber, ⚡ Leland Turbo, 🚗 Miles Axelrod, 🚜 Mater, 🧪 Professor Zundapp, 🏎️ Lightning McQueen, 🖤 Jackson Storm</p>
+            <p><strong>Core Features:</strong> 🍔 Radiator Springs Recipes, 🇵🇭 Filipino Food List, 🤖 AI Chatbot, 🏁 Event Race, 🌍 World Tour Recipe</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+    with right_col:
+        st.markdown(
+            """
+        <div class='settings-block'>
+            <h3>🚀 Version</h3>
+            <p><strong>Current Version:</strong> 1.1.0</p>
+            <p><strong>Release Date:</strong> May 5, 2026</p>
+            <p><strong>Highlights:</strong> Improved chatbot responder system, profanity filter, emoji fixes, and upgraded chatbot UI style.</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("### 📱 Contact Us")
+    st.write("📧 Email: hello@radiatorsprings.com")
+    st.write("📞 Phone: 1-800-KA-CHOW")
+    st.write("📍 Location: Radiator Springs, Arizona")
 # ==========================================================
 # MAIN APP
 # ==========================================================
@@ -2989,10 +3109,11 @@ with st.sidebar.expander("Section Guide", expanded=True):
 - \U0001F4CB Product List - All products with search and filter
 - \U0001F354 Radiator Springs Food - Cars-themed recipes
 - \U0001F1F5\U0001F1ED Filipino Food List - Traditional Filipino dishes
-- \U0001F916 Finn-Holley AI Chatbot - Chat with Finn McMissle, Holley Shiftwell, Rod Redline, or Tomber
+- \U0001F916 Finn-Holley AI Chatbot - Chat with Finn, Holley, Rod, Tomber, Leland, Miles, Mater, Professor Zundapp, Lightning McQueen, and Jackson Storm
 - \U0001F3C1 Event Race - Racing champions with expanded global roster
 - \U0001F30D World Tour Recipe - Complete 5 missions, haunt enemies, unlock recipes, then send package to Sally and Lizzie
 - \u2699\ufe0f Settings - Account settings, theme, notifications, language
+- \u2139\ufe0f About - App story, release version, and contact details
 """)
 st.sidebar.markdown(
     """

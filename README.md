@@ -64,7 +64,9 @@ Redesigned About page with styled info cards, updated version panel, chatbot ros
 ## 🎮 Gameplay-Like Systems
 
 ## 🏁 Event Race Mode
-- Large racer roster (22 drivers: classic + added world racers)
+- Large racer roster (24 drivers: classic + added world racers)
+- Added new racers: Nikolai Javier Jr. and Daria Patrick
+- **New Racer Images**: All racer cards now display character images instead of emojis for a more immersive experience
 - **New Orange/Yellow Card Design**: All racer cards now feature warm orange/yellow gradients with glow effects and improved hover animations
 - Track selection includes:
   - Radiator Springs Speedway
@@ -171,6 +173,9 @@ The following issues were identified in the current codebase:
 - Added profanity/cuss-word refusal handling in chatbot responses
 - Improved chatbot button and response box styling to orange/yellow with black-text readability
 - Fixed Leland Turbo emoji mojibake rendering and refreshed responder emoji mapping
+- Added new Event Race racers: Nikolai Javier Jr. and Daria Patrick
+- Fixed local Event Race racer image loading and updated the app owner spotlight image path
+- Replaced deprecated Streamlit `use_column_width` usage with `width` parameter in images
 - Redesigned About page and updated version to **1.1.0** (May 5, 2026)
 
 ### 2026-05-04

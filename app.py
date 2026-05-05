@@ -479,6 +479,15 @@ st.markdown("""
         transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
+    .race-card img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 18px;
+        margin-bottom: 16px;
+        border: 2px solid rgba(255, 159, 0, 0.25);
+    }
+
     .race-card:hover {
         transform: translateY(-8px) scale(1.01);
         box-shadow: 0 24px 46px rgba(255, 155, 0, 0.35);
@@ -566,6 +575,69 @@ if 'username' not in st.session_state:
     st.session_state.username = ""
 if 'role' not in st.session_state:
     st.session_state.role = "user"
+if 'theme_choice' not in st.session_state:
+    st.session_state.theme_choice = "Orange & Yellow Glow"
+
+
+def apply_theme_overrides():
+    theme = st.session_state.get("theme_choice", "Orange & Yellow Glow")
+    if theme == "Classic Radiator Springs":
+        st.markdown(
+            """
+<style>
+.stApp {
+    background: radial-gradient(circle at top, #ffe6ad 0%, #f6b15f 45%, #d97b26 100%) !important;
+}
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #f7dca3 0%, #e8a95a 45%, #c8752f 100%) !important;
+}
+.main-content, .settings-card, .settings-block {
+    border-color: rgba(95, 57, 19, 0.28) !important;
+}
+</style>
+""",
+            unsafe_allow_html=True,
+        )
+    elif theme == "Night Racer":
+        st.markdown(
+            """
+<style>
+.stApp {
+    background: radial-gradient(circle at top, #2a3142 0%, #121826 45%, #090d16 100%) !important;
+}
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #3b4864 0%, #25324a 55%, #121a2c 100%) !important;
+    border-right: 2px solid rgba(255, 183, 77, 0.35) !important;
+}
+[data-testid="stSidebar"] .stMarkdown p,
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] .stCaption {
+    color: #f5f7ff !important;
+}
+.settings-card {
+    background: linear-gradient(135deg, #202a40, #141a2d) !important;
+}
+.settings-title, .settings-subtitle {
+    color: #f5f7ff !important;
+}
+.settings-block {
+    background: rgba(20, 26, 45, 0.92) !important;
+    color: #eef3ff !important;
+    border-color: rgba(255, 176, 74, 0.35) !important;
+}
+.settings-block h3 {
+    color: #ffd37d !important;
+}
+.chat-bot {
+    border-color: #ffb347 !important;
+}
+</style>
+""",
+            unsafe_allow_html=True,
+        )
+
+
+apply_theme_overrides()
 
 # ==========================================================
 # SIDEBAR NAVIGATION
@@ -2728,35 +2800,42 @@ def show_event_race():
     </div>
     """, unsafe_allow_html=True)
     racers = [
-        {"name": "Lightning McQueen", "emoji": "\U0001F3CE\ufe0f", "color": "#ff3b30", "desc": "The red racing legend - 5-time Piston Cup Champion!"},
-        {"name": "Francesco Bernoulli", "emoji": "\U0001F3CE\ufe0f", "color": "#0066cc", "desc": "The Italian speedster - Lightning's biggest rival!"},
-        {"name": "Jackson Storm", "emoji": "\U0001F3CE\ufe0f", "color": "#1a1a2e", "desc": "Next-gen racer - sleek and powerful."},
-        {"name": "Cal Weathers", "emoji": "\U0001F3CE\ufe0f", "color": "#ff9500", "desc": "Veteran racer with strong consistency."},
-        {"name": "Rip Clutchgoneski", "emoji": "\U0001F3CE\ufe0f", "color": "#c1121f", "desc": "New Republic's determined world-class racer."},
-        {"name": "Carla Veloso", "emoji": "\U0001F3CE\ufe0f", "color": "#ff4d6d", "desc": "Brazilian star known for samba-style speed."},
-        {"name": "Cruz Ramirez", "emoji": "\U0001F3CE\ufe0f", "color": "#f7c948", "desc": "Trainer turned top racer with elite pace."},
-        {"name": "Jeff Gorvette", "emoji": "\U0001F3CE\ufe0f", "color": "#3a86ff", "desc": "American champion with smooth cornering."},
-        {"name": "Miguel Camino", "emoji": "\U0001F3CE\ufe0f", "color": "#d00000", "desc": "Spanish racer combining rhythm and precision."},
-        {"name": "Max Schnell", "emoji": "\U0001F3CE\ufe0f", "color": "#2a9d8f", "desc": "German racer built for technical tracks."},
-        {"name": "Bobby Swift", "emoji": "\U0001F3CE\ufe0f", "color": "#e76f51", "desc": "Aggressive modern racer with fast starts."},
-        {"name": "Chick Hicks", "emoji": "\U0001F3CE\ufe0f", "color": "#84a98c", "desc": "Classic rival with rough but effective tactics."},
-        {"name": "Lewis Hamilton", "emoji": "\U0001F3CE\ufe0f", "color": "#6c757d", "desc": "Global icon with elite racecraft and pace."},
-        {"name": "Todd Marcus", "emoji": "\U0001F3CE\ufe0f", "color": "#adb5bd", "desc": "Steady performer with strong race rhythm."},
-        {"name": "Raoul \u00C7aRoule", "emoji": "\U0001F3CE\ufe0f", "color": "#00b4d8", "desc": "French rally specialist with sharp transitions."},
-        {"name": "Shu Todoroki", "emoji": "\U0001F3CE\ufe0f", "color": "#e63946", "desc": "Precision driver with excellent corner control."},
-        {"name": "Nigel Gearsley", "emoji": "\U0001F3CE\ufe0f", "color": "#1d3557", "desc": "Strategic racer known for balanced pace."},
-        {"name": "Dud Throttleman", "emoji": "\U0001F3CE\ufe0f", "color": "#6d597a", "desc": "Strong late-race charger and drafter."},
-        {"name": "Speedy Comet", "emoji": "\U0001F3CE\ufe0f", "color": "#ff006e", "desc": "Quick accelerator with aggressive starts."},
-        {"name": "Brick Yardley", "emoji": "\U0001F3CE\ufe0f", "color": "#8d99ae", "desc": "Consistent lap-time specialist."},
-        {"name": "Bubba Wheelhouse", "emoji": "\U0001F3CE\ufe0f", "color": "#bc6c25", "desc": "Fearless overtaker with dirt-track roots."},
-        {"name": "Chase Racelott", "emoji": "\U0001F3CE\ufe0f", "color": "#4cc9f0", "desc": "Young rising racer with clean exits."},
+        {"name": "Lightning McQueen", "image": "cars_2_mcquee12.png", "color": "#ff3b30", "desc": "The red racing legend - 5-time Piston Cup Champion!"},
+        {"name": "Francesco Bernoulli", "image": "francesco_bernoulli.png", "color": "#0066cc", "desc": "The Italian speedster - Lightning's biggest rival!"},
+        {"name": "Jackson Storm", "image": "jackson_storm.png", "color": "#1a1a2e", "desc": "Next-gen racer - sleek and powerful."},
+        {"name": "Cal Weathers", "image": "cal_weathers.png", "color": "#ff9500", "desc": "Veteran racer with strong consistency."},
+        {"name": "Rip Clutchgoneski", "image": "rip_clutchgoneski.png", "color": "#c1121f", "desc": "New Republic's determined world-class racer."},
+        {"name": "Carla Veloso", "image": "carla_veloso.png", "color": "#ff4d6d", "desc": "Brazilian star known for samba-style speed."},
+        {"name": "Cruz Ramirez", "image": "cruz_ramirez.png", "color": "#f7c948", "desc": "Trainer turned top racer with elite pace."},
+        {"name": "Jeff Gorvette", "image": "jeff_gorvette.png", "color": "#3a86ff", "desc": "American champion with smooth cornering."},
+        {"name": "Miguel Camino", "image": "miguel_camino.png", "color": "#d00000", "desc": "Spanish racer combining rhythm and precision."},
+        {"name": "Max Schnell", "image": "max_schnell.png", "color": "#2a9d8f", "desc": "German racer built for technical tracks."},
+        {"name": "Bobby Swift", "image": "bobby_swift.png", "color": "#e76f51", "desc": "Aggressive modern racer with fast starts."},
+        {"name": "Chick Hicks", "image": "cars_3_chick10.png", "color": "#84a98c", "desc": "Classic rival with rough but effective tactics."},
+        {"name": "Lewis Hamilton", "image": "lewis_hamilton.png", "color": "#6c757d", "desc": "Global icon with elite racecraft and pace."},
+        {"name": "Todd Marcus", "image": "todd-marcus1.png", "color": "#adb5bd", "desc": "Steady performer with strong race rhythm."},
+        {"name": "Raoul \u00C7aRoule", "image": "raoul_caroule.png", "color": "#00b4d8", "desc": "French rally specialist with sharp transitions."},
+        {"name": "Shu Todoroki", "image": "shu_todoroki.png", "color": "#e63946", "desc": "Precision driver with excellent corner control."},
+        {"name": "Nigel Gearsley", "image": "nigel_gearsley.png", "color": "#1d3557", "desc": "Strategic racer known for balanced pace."},
+        {"name": "Dud Throttleman", "image": "dud_throttleman.png", "color": "#6d597a", "desc": "Strong late-race charger and drafter."},
+        {"name": "Speedy Comet", "image": "speedy_comet.png", "color": "#ff006e", "desc": "Quick accelerator with aggressive starts."},
+        {"name": "Brick Yardley", "image": "brick_yardley.png", "color": "#8d99ae", "desc": "Consistent lap-time specialist."},
+        {"name": "Bubba Wheelhouse", "image": "bubba_wheelhouse.png", "color": "#bc6c25", "desc": "Fearless overtaker with dirt-track roots."},
+        {"name": "Chase Racelott", "image": "chase_racelott.png", "color": "#4cc9f0", "desc": "Young rising racer with clean exits."},
+        {"name": "Nikolai Javier Jr.", "image": "Nikolai_Javier1.png", "color": "#ff6600", "desc": "Rising star from the Philippines with incredible speed."},
+        {"name": "Daria Patrick", "image": "bini_dariapatrick1.png", "color": "#ff1493", "desc": "American racing icon known for her determination and skill."},
     ]
     cols = st.columns(3)
     for i, racer in enumerate(racers):
         with cols[i % 3]:
             st.markdown(f"""
             <div class="race-card" style="border-color: {racer['color']}; background: linear-gradient(135deg, #fff1be, #ffab00);">
-                <div class="racing" style="font-size: 80px;">{racer['emoji']}</div>
+            """, unsafe_allow_html=True)
+            if os.path.exists(racer['image']):
+                st.image(racer['image'], width=400)
+            else:
+                st.markdown(f"<div class='race-car' style='font-size: 80px;'>🏁</div>", unsafe_allow_html=True)
+            st.markdown(f"""
                 <div class="race-name" style="color: #111;">{racer['name']}</div>
                 <div class="character-quote">{racer['desc']}</div>
             </div>
@@ -2821,6 +2900,8 @@ def show_event_race():
             "Brick Yardley": 17.3,
             "Bubba Wheelhouse": 17.6,
             "Chase Racelott": 16.4,
+            "Nikolai Javier Jr.": 16.3,
+            "Daria Patrick": 16.5,
         }
         mode_variation = 1.5 if race_mode == "Simulator" else 0.8
         support_bonus = 0.25 if race_mode == "Simulator" else 0.15
@@ -3012,15 +3093,33 @@ def show_settings():
         st.warning("Please login to access account settings!")
 
     st.markdown("### 🎨 Theme Settings")
-    theme_choice = st.radio("Theme palette:", ["Orange & Yellow Glow", "Classic Radiator Springs", "Night Racer"])
-    st.write(f"Selected theme: **{theme_choice}**")
+    theme_options = ["Orange & Yellow Glow", "Classic Radiator Springs", "Night Racer"]
+    current_theme = st.session_state.get("theme_choice", "Orange & Yellow Glow")
+    selected_idx = theme_options.index(current_theme) if current_theme in theme_options else 0
+    theme_choice = st.radio("Theme palette:", theme_options, index=selected_idx)
+    st.session_state.theme_choice = theme_choice
+    st.success(f"Theme applied: **{theme_choice}**")
+    preview_map = {
+        "Orange & Yellow Glow": "Warm energetic gradient with bright orange/yellow cards.",
+        "Classic Radiator Springs": "Vintage sunset palette with classic town-road warmth.",
+        "Night Racer": "Cool night-race atmosphere with deep blue tones and gold accents.",
+    }
+    st.markdown(
+        f"""
+<div class='settings-block'>
+<h3>Theme Preview</h3>
+<p>{preview_map.get(theme_choice, '')}</p>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
 
     st.markdown("### 🔔 Notification Settings")
-    st.checkbox("Email notifications", value=True)
-    st.checkbox("Recipe updates", value=True)
+    st.checkbox("Email notifications", value=True, key="notify_email")
+    st.checkbox("Recipe updates", value=True, key="notify_recipes")
 
     st.markdown("### 🌍 Language")
-    st.selectbox("Select Language:", ["English", "Filipino", "Spanish", "Italian", "Japanese"])
+    st.selectbox("Select Language:", ["English", "Filipino", "Spanish", "Italian", "Japanese"], key="ui_language")
 def show_about():
     st.markdown(
         """
@@ -3064,6 +3163,43 @@ def show_about():
     st.write("📧 Email: hello@radiatorsprings.com")
     st.write("📞 Phone: 1-800-KA-CHOW")
     st.write("📍 Location: Radiator Springs, Arizona")
+
+    st.markdown("### Owner Spotlight")
+    if os.path.exists("Nikolai_Javier1.png"):
+        st.image("Nikolai_Javier1.png", width=340, caption="Nikolai Javier Jr. - App Owner and Racer")
+    else:
+        st.warning("Image not found: Nikolai_Javier1.png")
+    st.markdown(
+        """
+<div class='settings-block'>
+<h3>Nikolai Javier Jr.</h3>
+<p>One of the owners of this app and also a race car personality in this project world.</p>
+<p>He helps shape the app vision by combining racing spirit, recipe exploration, and interactive AI storytelling.</p>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+
+def render_general_footer():
+    st.markdown(
+        """
+<div style="
+    margin-top: 28px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #ffd84d, #ff9f00);
+    color: #111;
+    text-align: center;
+    font-weight: 800;
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    box-shadow: 0 8px 18px rgba(255, 153, 0, 0.22);
+">
+Cars Radiator Springs - Home Of The Recipe | Version 1.1.0 | Built with heart by the Radiator Springs Team
+</div>
+""",
+        unsafe_allow_html=True,
+    )
 # ==========================================================
 # MAIN APP
 # ==========================================================
@@ -3077,7 +3213,7 @@ pages = {
     "event_race": {"label": "\U0001F3C1 Event Race", "icon": "Race", "view": show_event_race, "protected": True, "section": "Interactive"},
     "world_tour": {"label": "\U0001F30D World Tour Recipe", "icon": "Tour", "view": show_world_tour, "protected": True, "section": "Interactive"},
     "settings": {"label": "\u2699\ufe0f Settings", "icon": "Config", "view": show_settings, "protected": True, "section": "Account"},
-    "about": {"label": "About", "icon": "Info", "view": show_about, "protected": False, "section": "General"},
+    "about": {"label": "ℹ️ Info / About", "icon": "Info", "view": show_about, "protected": False, "section": "General"},
 }
 ordered_page_ids = [
     "home",
@@ -3113,7 +3249,7 @@ with st.sidebar.expander("Section Guide", expanded=True):
 - \U0001F3C1 Event Race - Racing champions with expanded global roster
 - \U0001F30D World Tour Recipe - Complete 5 missions, haunt enemies, unlock recipes, then send package to Sally and Lizzie
 - \u2699\ufe0f Settings - Account settings, theme, notifications, language
-- \u2139\ufe0f About - App story, release version, and contact details
+- \u2139\ufe0f Info / About - App story, owners, release version, and contact details
 """)
 st.sidebar.markdown(
     """
@@ -3128,7 +3264,7 @@ Finn-Holley AI Chatbot<br>
 Event Race<br>
 World Tour Recipe<br>
 Settings<br>
-About
+Info / About
 </div>
 """,
     unsafe_allow_html=True,
@@ -3171,5 +3307,8 @@ if page["protected"] and not st.session_state.logged_in:
     show_login_register()
 else:
     page["view"]()
+
+if pages[st.session_state.selected_page]["section"] == "General":
+    render_general_footer()
 
 

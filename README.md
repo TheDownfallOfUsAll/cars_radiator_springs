@@ -1,4 +1,4 @@
-# 🚗 Cars Radiator Springs: Home Of The Recipe
+# 🚗 Cars Radiator Springs: Home Of The Cooking Recipe
 
 A Streamlit story app inspired by the *Cars* universe.  
 It combines recipes, character interactions, race simulation, and world tour exploration in one experience.
@@ -47,6 +47,7 @@ Features improved orange/yellow glow design with preserved emojis. Handles:
 - Quick recipe suggestion buttons for fast navigation
 - profanity/cuss filtering (chatbot refuses swearing and asks for respectful rephrase)
 - non-repeating fallback/greeting style responses
+- No Swearings on the AI Chatbot
 
 
 ### 🏁 Event Race
@@ -161,7 +162,7 @@ The following issues were identified in the current codebase:
 - `cars_2_mcquee12.png` — Lightning McQueen character image
 - `cars_2_martin_(tow_mater).png` — Mater character image
 
-## 📝 Recent Updates
+## 📝 Recent Updates (That McQueen Update)
 
 ### 2026-05-05
 - Added retrieval-augmented AI chatbot behavior using the local recipe knowledge base

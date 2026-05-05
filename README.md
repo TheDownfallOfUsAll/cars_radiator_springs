@@ -212,5 +212,10 @@ Keep entries short and user-facing.
 ## ⚠️ Notes
 
 - Built for local/demo usage.
-- If emoji appears broken (`Ã......` text), ensure UTF-8 encoding and restart Streamlit.
+- If emoji appears like Mojibake is a broken (`Ã......` text), ensure UTF-8 encoding and restart Streamlit. (Ask McQueen about that).
 
+## 🚧 Deployment
+
+- Deployment Is Still Under The Build Constructions and Don't Worry, It's Almost Done for It! hahaha!
+- Link: 🛠️🏗️🚜👷🚧🏗️ Still On The Works! hahaha
+- Mater and McQueen is still on the works hahahaha

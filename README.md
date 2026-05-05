@@ -232,6 +232,6 @@ Keep entries short and user-facing.
 
 ## 🚧 Deployment
 
-- Deployment Is Still Under The Build Constructions and Don't Worry, It's Almost Done for It! hahaha!
-- Link: 🛠️🏗️🚜👷🚧🏗️ Still On The Works! hahaha
-- Mater and McQueen is still on the works hahahaha
+- Deployment Is Now Live! Hahahaha
+- Link: (https://thehomeoftherecipecarsradiatorsprings.streamlit.app/)
+- LETSGO!! Hahahaha

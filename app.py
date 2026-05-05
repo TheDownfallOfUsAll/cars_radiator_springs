@@ -2,6 +2,8 @@ import streamlit as st
 import sqlite3
 import hashlib
 import os
+import re
+import difflib
 from datetime import datetime
 
 # ==========================================================
@@ -2339,25 +2341,53 @@ def generate_ai_response(user_input, character):
             "Want me to show expected podium picks too?"
         )
     
+    # Agentic planning and shopping list responses
+    agentic_response = generate_agentic_response_if_needed(user_input, character)
+    if agentic_response:
+        return agentic_response
+
     # Check if user is asking about a specific recipe
     for recipe_name, recipe_info in RECIPE_KNOWLEDGE.items():
         if recipe_name in user_input_lower:
             return get_character_response(recipe_info, character)
-    
+
+    # Retrieval-augmented response from local recipe knowledge base
+    retrieved = retrieve_recipe_matches(user_input, top_n=2)
+    if retrieved:
+        top_match = retrieved[0]
+        if top_match['score'] > 0.28:
+            return (
+                f"{character} Agent:\n"
+                f"I found a close match in the recipe knowledge base for '{top_match['recipe_name']}'.\n\n"
+                + get_character_response(top_match['recipe_info'], character)
+            )
+
     # Try to use Ollama for other questions
     try:
         import requests
+        retrieved_context = ''
+        if retrieved:
+            retrieved_context = '\n\n'.join([
+                f"{item['recipe_name']}: {item['recipe_info'][:220].strip()}..."
+                for item in retrieved
+            ])
+        prompt = (
+            f"You are {character} from the movie Cars. Use the following recipe references to answer the user questions."
+            f"\n\n{retrieved_context}\n\nUser asks: {user_input}"
+        ) if retrieved_context else f"You are {character} from the movie Cars. User asks: {user_input}"
         response = requests.post(
             "http://localhost:11434/api/generate",
             json={
                 "model": "llama3.2",
-                "prompt": f"You are {character} from the movie Cars. You are helpful and knowledgeable about recipes, especially Filipino food and Radiator Springs cuisine. User asks: {user_input}",
+                "prompt": prompt,
                 "stream": False
             },
             timeout=30
         )
         if response.status_code == 200:
-            return response.json().get("response", "")
+            text_response = response.json().get("response", "")
+            if text_response:
+                return text_response
     except:
         pass
     
@@ -2393,6 +2423,95 @@ def get_character_fallback(user_input, character):
         "Mater": f"*beep beep* Well, butter my belly button! You're asking about '{user_input}'? I may just be a tow truck, but I know GOOD EATS! Try some Filipino food - we got Sinigang, Adobo, Lechon, Longganisa, Tocino, Champorado... the list goes on! Want me to share a recipe? Yee-haw!"
     }
     return fallbacks.get(character, f"I'd be happy to help with '{user_input}'! Try asking about Filipino dishes like Sinigang, Adobo, or Halo-Halo!")
+
+
+def normalize_text(text):
+    return re.sub(r'[^a-z0-9\s]', ' ', text.lower()).strip()
+
+
+def extract_ingredients(recipe_info):
+    ingredients = []
+    capture = False
+    for line in recipe_info.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            if capture:
+                break
+            continue
+        if stripped.lower().startswith('ingredients'):
+            capture = True
+            continue
+        if capture:
+            if stripped.startswith('-'):
+                ingredients.append(stripped[1:].strip())
+            else:
+                break
+    return ingredients
+
+
+def retrieve_recipe_matches(query, top_n=3):
+    query_norm = normalize_text(query)
+    scores = []
+    for recipe_name, recipe_info in RECIPE_KNOWLEDGE.items():
+        text = normalize_text(recipe_name + ' ' + recipe_info)
+        name_bonus = sum(1 for token in query_norm.split() if token in normalize_text(recipe_name).split())
+        similarity = difflib.SequenceMatcher(None, query_norm, text).ratio()
+        score = similarity + (name_bonus * 0.45)
+        scores.append((score, recipe_name, recipe_info))
+    scores.sort(reverse=True, key=lambda x: x[0])
+    return [
+        {"recipe_name": recipe_name, "recipe_info": recipe_info, "score": score}
+        for score, recipe_name, recipe_info in scores[:top_n]
+        if score > 0.05
+    ]
+
+
+def generate_agentic_response_if_needed(user_input, character):
+    user_input_lower = user_input.lower()
+    agentic_keywords = [
+        'plan', 'shopping list', 'menu', 'steps', 'step-by-step', 'ingredients list',
+        'prepare', 'organize', 'cook schedule', 'shopping', 'meal plan', 'recipe plan'
+    ]
+    if not any(keyword in user_input_lower for keyword in agentic_keywords):
+        return None
+
+    matches = retrieve_recipe_matches(user_input, top_n=3)
+    if not matches:
+        return None
+
+    if 'shopping list' in user_input_lower or 'ingredients' in user_input_lower:
+        all_ingredients = []
+        for match in matches:
+            all_ingredients.extend(extract_ingredients(match['recipe_info']))
+        if all_ingredients:
+            unique_ingredients = []
+            for ingredient in all_ingredients:
+                if ingredient not in unique_ingredients:
+                    unique_ingredients.append(ingredient)
+            return (
+                f"{character} Agent:\n"
+                "I used the local recipe knowledge base to create a shopping list for you from these recipes:\n"
+                + '\n'.join([f"- {match['recipe_name']}" for match in matches])
+                + "\n\nShopping List:\n"
+                + '\n'.join([f"- {item}" for item in unique_ingredients])
+                + "\n\nReady to cook? Ask me for a step-by-step plan for any recipe."
+            )
+
+    selected_recipes = matches[:3]
+    recipe_names = ', '.join([match['recipe_name'] for match in selected_recipes])
+    steps = [
+        f"1. Review the recipes: {recipe_names}.",
+        "2. Gather all ingredients from the local recipe knowledge base.",
+        "3. Decide which dish to cook first based on time and flavor.",
+        "4. Follow the step-by-step cooking instructions for each recipe.",
+        "5. Serve the dishes together for a tasty menu experience."
+    ]
+    return (
+        f"{character} Agent:\n"
+        f"I used retrieval from the recipe knowledge base to suggest a plan based on your request. Here is a simple cooking plan for {recipe_names}:\n"
+        + '\n'.join(steps)
+        + "\n\nIf you want, I can also create a detailed timeline or a full shopping list for these recipes."
+    )
 
 
 def show_chatbot():

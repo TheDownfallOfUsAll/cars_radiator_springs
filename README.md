@@ -41,6 +41,8 @@ Features improved orange/yellow glow design with preserved emojis. Handles:
 - recipe questions and cooking guidance
 - greetings (English/Tagalog flow)
 - race-related prompts (e.g., schedule / next racers)
+- retrieval-augmented generation (RAG) using the local recipe knowledge base
+- agentic planning for menus, shopping lists, and step-by-step cook plans
 - Quick recipe suggestion buttons for fast navigation
 
 

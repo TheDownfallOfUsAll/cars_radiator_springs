@@ -43,6 +43,7 @@ Features improved orange/yellow glow design with preserved emojis. Handles:
 - race-related prompts (e.g., schedule / next racers)
 - retrieval-augmented generation (RAG) using the local recipe knowledge base
 - agentic planning for menus, shopping lists, and step-by-step cook plans
+- concise answer prompts such as "one-word" responses when requested
 - Quick recipe suggestion buttons for fast navigation
 
 
@@ -159,6 +160,11 @@ The following issues were identified in the current codebase:
 - `cars_2_martin_(tow_mater).png` — Mater character image
 
 ## 📝 Recent Updates
+
+### 2026-05-05
+- Added retrieval-augmented AI chatbot behavior using the local recipe knowledge base
+- Added agentic recipe planning support for shopping lists, cooking plans, and menu suggestions
+- Improved chatbot prompt handling for concise responses when asked for one-word answers
 
 ### 2026-05-04
 - **Design Overhaul**: Complete transition to orange & yellow gradient theme with glow flex animations

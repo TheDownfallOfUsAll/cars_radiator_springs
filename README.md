@@ -35,7 +35,17 @@ Traditional Filipino dishes and entries.
 
 ### 🤖 Finn-Holley AI Chatbot
 Character-style assistant with 10 selectable personalities:
-- 🎩 Finn McMissle, 💫 Holley Shiftwell, 🔧 Rod Redline, 🚙 Tomber, ⚡ Leland Turbo, 🚗 Miles Axelrod, 🚜 Mater, 🧪 Professor Zundapp, 🏎️ Lightning McQueen, 🖤 Jackson Storm
+
+- 🎩 Finn McMissle
+- 💫 Holley Shiftwell
+- 🔧 Rod Redline
+- 🚙 Tomber
+- ⚡ Leland Turbo
+- 🚗 Miles Axelrod
+- 🚜 Mater
+- 🧪 Professor Zundapp
+- 🏎️ Lightning McQueen
+- 🖤 Jackson Storm
 
 Features improved orange/yellow glow design with preserved emojis. Handles:
 - recipe questions and cooking guidance

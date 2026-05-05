@@ -34,8 +34,8 @@ Cars-themed recipe section.
 Traditional Filipino dishes and entries.
 
 ### 🤖 Finn-Holley AI Chatbot
-Character-style assistant with 7 selectable personalities:
-- 🎩 Finn McMissle, 💫 Holley Shiftwell, 🔧 Rod Redline, 🚙 Tomber, ⚡ Leland Turbo, 🚗 Miles Axelrod, 🚜 Mater
+Character-style assistant with 10 selectable personalities:
+- 🎩 Finn McMissle, 💫 Holley Shiftwell, 🔧 Rod Redline, 🚙 Tomber, ⚡ Leland Turbo, 🚗 Miles Axelrod, 🚜 Mater, 🧪 Professor Zundapp, 🏎️ Lightning McQueen, 🖤 Jackson Storm
 
 Features improved orange/yellow glow design with preserved emojis. Handles:
 - recipe questions and cooking guidance
@@ -45,6 +45,8 @@ Features improved orange/yellow glow design with preserved emojis. Handles:
 - agentic planning for menus, shopping lists, and step-by-step cook plans
 - concise answer prompts such as "one-word" responses when requested
 - Quick recipe suggestion buttons for fast navigation
+- profanity/cuss filtering (chatbot refuses swearing and asks for respectful rephrase)
+- non-repeating fallback/greeting style responses
 
 
 ### 🏁 Event Race
@@ -57,7 +59,7 @@ Mission-first world tour mode with recipe unlock progression.
 Account/status and app preferences.
 
 ### ℹ️ About
-App information, version, and contact details.
+Redesigned About page with styled info cards, updated version panel, chatbot roster, and contact details.
 
 ## 🎮 Gameplay-Like Systems
 
@@ -96,7 +98,7 @@ App information, version, and contact details.
 - Character-themed UI and storytelling
 - Recipe browsing and categories
 - SQLite authentication with admin support
-- Advanced Recipe Chatbot with 7 selectable characters (emojis preserved)
+- Advanced Recipe Chatbot with 10 selectable characters (emojis preserved)
 - Enhanced Race mode with orange/yellow themed cards
 - World Tour mode with Lemons and Clippers as enemy teams
 - Expanded Filipino and Radiator Springs recipe knowledge base
@@ -165,6 +167,11 @@ The following issues were identified in the current codebase:
 - Added retrieval-augmented AI chatbot behavior using the local recipe knowledge base
 - Added agentic recipe planning support for shopping lists, cooking plans, and menu suggestions
 - Improved chatbot prompt handling for concise responses when asked for one-word answers
+- Added 3 new chatbot responders: Professor Zundapp, Lightning McQueen, and Jackson Storm
+- Added profanity/cuss-word refusal handling in chatbot responses
+- Improved chatbot button and response box styling to orange/yellow with black-text readability
+- Fixed Leland Turbo emoji mojibake rendering and refreshed responder emoji mapping
+- Redesigned About page and updated version to **1.1.0** (May 5, 2026)
 
 ### 2026-05-04
 - **Design Overhaul**: Complete transition to orange & yellow gradient theme with glow flex animations

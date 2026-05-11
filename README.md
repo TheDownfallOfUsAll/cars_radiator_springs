@@ -176,6 +176,16 @@ The following issues were identified in the current codebase:
 
 ## 📝 Recent Updates (That McQueen Update)
 
+### 2026-05-11
+- Event Race roster massively expanded with new racer entries and image assets.
+- Event Race lap setup changed from `3-30` to `70-100` for long-format battles.
+- Event Race now runs as a full-grid system: all racers participate in both `Simulator` and `Arcade`.
+- Added yellow-flag race-control events during simulation.
+- Added scheduled pit crew full-repair stops every 15 laps, with lap count continuing (no lap reset).
+- Added massive-crash incident handling: affected racers are marked `OUT` (DNF) for the rest of the race.
+- Full standings now keep all racers in the list, including racers that crash out.
+- Added persistent race battle summary panel and `Reset Race Battle` button after each race.
+
 ### 2026-05-05
 - Added retrieval-augmented AI chatbot behavior using the local recipe knowledge base
 - Added agentic recipe planning support for shopping lists, cooking plans, and menu suggestions

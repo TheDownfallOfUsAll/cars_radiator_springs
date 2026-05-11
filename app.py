@@ -3141,7 +3141,8 @@ def show_event_race():
             st.rerun()
 def show_world_tour():
     st.markdown("## World Tour Recipe")
-    st.markdown("*Complete 5 missions first, then haunt enemy teams against the Lemons and Clippers to unlock recipes!*")
+    st.markdown("*Complete 5 missions first, then defend and recover recipes against the Lemons and Clippers with AI Agent support!*")
+    st.info("AI Agents team up in this mode to protect recipes and support your missions against the Clippers and Lemons.")
     st.markdown("### Tour Briefing Map")
     map_path = "map-of-the-world.png"
     if os.path.exists(map_path):
@@ -3238,7 +3239,7 @@ def show_world_tour():
         return
 
     st.markdown("### Haunting Phase")
-    st.write("All missions complete. You can now haunt enemies and secure recipes.")
+    st.write("All missions complete. AI Agents now team up to protect recipes while you pressure enemy teams and secure unlocks.")
     for tour in ordered_tours:
         unlocked = tour["dish"] in st.session_state.tour_unlocked_recipes
         status = "Unlocked" if unlocked else "Locked"
@@ -3252,7 +3253,7 @@ def show_world_tour():
         else:
             if st.button(f"Haunt Enemies in {tour['location']}", key=f"haunt_{tour['location']}"):
                 st.session_state.tour_unlocked_recipes.append(tour["dish"])
-                st.success(f"You haunted {tour['enemy']} and secured the {tour['dish']} recipe!")
+                st.success(f"You and the AI Agent team outplayed {tour['enemy']} and secured the {tour['dish']} recipe!")
                 st.rerun()
 
     st.markdown("### Recipe Collection Progress")
@@ -3379,6 +3380,175 @@ def show_about():
     )
 
 
+def show_home_v2():
+    st.image("logo-of-app.png", width="stretch")
+    st.markdown("""
+    <div class="hero-box">
+        <div class="hero-title">Cars Radiator Springs</div>
+        <div class="hero-subtitle">
+            Home Of The Recipe with Lightning McQueen and Mater
+        </div>
+        <p>Ka-chow your way into delicious meals and cozy recipes from Radiator Springs!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.write("")
+    st.write("")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("<div class='character-card'>", unsafe_allow_html=True)
+        if os.path.exists("cars_2_mcquee12.png"):
+            st.image("cars_2_mcquee12.png", width=400)
+        else:
+            st.warning("Image not found: cars_2_mcquee12.png")
+        st.markdown("""
+            <div class="character-name">Lightning McQueen</div>
+            <div class="character-quote">
+                "Ka-chow! Welcome to Radiator Springs! I'm Lightning McQueen, the fastest car in the world! Check out our delicious recipes and speed into flavor!"
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("<div class='character-card'>", unsafe_allow_html=True)
+        if os.path.exists("cars_2_martin_(tow_mater).png"):
+            st.image("cars_2_martin_(tow_mater).png", width=400)
+        else:
+            st.warning("Image not found: cars_2_martin_(tow_mater).png")
+        st.markdown("""
+            <div class="character-name">Mater</div>
+            <div class="character-quote">
+                "Howdy! I'm Mater, the best tow truck in Radiator Springs! Welcome to our kitchen - we got the best comfort food this side of the highway! Yee-haw!"
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.info("Click on 'Login / Register' in the sidebar to get started!")
+
+    st.subheader("Quick Preview")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+        <div class="recipe-card">
+            <div class="card-title">Route 66 Fries</div>
+            <div class="card-desc">Crispy golden fries</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown("""
+        <div class="recipe-card">
+            <div class="card-title">McQueen Burger</div>
+            <div class="card-desc">Double patty with speed sauce</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown("""
+        <div class="recipe-card">
+            <div class="card-title">Mater Milkshake</div>
+            <div class="card-desc">Creamy vanilla shake</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+def show_about_v2():
+    show_about()
+    st.markdown("### Nikolai's Crew Owners")
+    crew_cols = st.columns(2)
+    crew = [
+        {
+            "name": "Claudine Margaret Ricablanca",
+            "image": "ClaudineMargaret.png",
+            "role": "UI Designer and Project Updates",
+            "desc": "Supports UI design and project update improvements across the app.",
+        },
+        {
+            "name": "Gwyn Sapio",
+            "image": "GwynSapio.png",
+            "role": "API and UI Designer",
+            "desc": "Supports API integration direction and UI design collaboration.",
+        },
+    ]
+    for idx, member in enumerate(crew):
+        with crew_cols[idx]:
+            if os.path.exists(member["image"]):
+                st.image(member["image"], width=400, caption=f"{member['name']} - {member['role']}")
+            else:
+                st.warning(f"Image not found: {member['image']}")
+            st.markdown(
+                f"""
+<div class='settings-block'>
+<h3>{member['name']}</h3>
+<p>{member['desc']}</p>
+</div>
+""",
+                unsafe_allow_html=True,
+            )
+
+
+def show_character_list():
+    st.markdown("## Character List")
+    st.markdown("Characters, AI Agents, and Villains roster.")
+
+    sections = [
+        ("Characters", [
+            ("Lightning McQueen", "cars_2_mcquee12.png", ""),
+            ("Mater", "cars_2_martin_(tow_mater).png", ""),
+            ("Sally", "cars_3_sally.png", ""),
+            ("Guido", "cars_2_guido.png", ""),
+            ("Luigi", "cars_2_luigi.png", ""),
+            ("Sarge", "cars_2_sergent_(sarge).png", ""),
+            ("Sheriff", "sheriff.png", ""),
+            ("Flo", "flo.png", ""),
+            ("Ramone", "Ramone.png", ""),
+            ("Mack", "mack.png", ""),
+        ]),
+        ("AI Agents", [
+            ("Lightning McQueen", "cars_2_mcquee12.png", ""),
+            ("Mater", "cars_2_martin_(tow_mater).png", ""),
+            ("Finn McMissle", "finn_mcmissile.png", ""),
+            ("Holley Shiftwell", "holly_shiftwell.png", ""),
+            ("Rod Redline Torque", "rod_torque_redline.png", ""),
+            ("Leland Turbo", "leland_turbo.png", ""),
+            ("Tomber", "tomber.png", ""),
+            ("Jackson Storm", "jackson_storm.png", ""),
+            ("Professor Zundapp", "professor_zundapp.png", ""),
+            ("Miles Axelrod", "miles_axlerod.png", ""),
+        ]),
+        ("Villains - The Clippers/Lemons", [
+            ("Tyler Clippers", "tyler_gremlin.png", ""),
+            ("Grem Lemons", "grem.png", ""),
+            ("Acer Clippers", "acer (1).png", ""),
+            ("Don Lemons", "don_crumlin.png", ""),
+            ("Fred Lemons", "FredLemons.png", ""),
+            ("Ivan Clippers", "IvanClippers.png", ""),
+            ("John Lemons", "JohnLemons.png", ""),
+            ("Mike Clippers", "MikeClippers.png", ""),
+            ("Petrov Clippers", "PetrovClippers.png", ""),
+            ("Tolga Clippers", "TolgaClippers.png", ""),
+            ("Towga Clippers", "TowgaLemons.png", ""),
+            ("Vladmir Clippers", "VladmirClippers.png", ""),
+            ("Victor Clippers", "VictorClippers.png", ""),
+            ("Shai Gilgeous-Alexander", "ShaiAlexander.png", "Assistant leader of Lemons"),
+            ("Kevin Durant", "KevinDurant.png", "Assistant leader of Clippers"),
+            ("Michael Jordan", "MichaelJordan.png", "Leader of Clippers and Lemons; main antagonist"),
+        ]),
+    ]
+
+    for section_title, entries in sections:
+        st.markdown(f"### {section_title}")
+        cols = st.columns(4)
+        for idx, (name, image, role) in enumerate(entries):
+            with cols[idx % 4]:
+                if os.path.exists(image):
+                    st.image(image, width=400)
+                else:
+                    st.warning(f"Image not found: {image}")
+                st.markdown(f"**{name}**")
+                if role:
+                    st.caption(role)
+
+
 def render_general_footer():
     st.markdown(
         """
@@ -3402,7 +3572,8 @@ Cars Radiator Springs - Home Of The Recipe | Version 1.1.0 | Built with heart by
 # MAIN APP
 # ==========================================================
 pages = {
-    "home": {"label": "\U0001F3E0 Home / Welcome", "icon": "Home", "view": show_home, "protected": False, "section": "General"},
+    "home": {"label": "\U0001F3E0 Home / Welcome", "icon": "Home", "view": show_home_v2, "protected": False, "section": "General"},
+    "character_list": {"label": "\U0001F4D8 Character List", "icon": "Cast", "view": show_character_list, "protected": False, "section": "General"},
     "auth": {"label": "\U0001F510 Login / Register", "icon": "Auth", "view": show_login_register, "protected": False, "section": "General"},
     "products": {"label": "\U0001F4CB Product List", "icon": "Menu", "view": show_product_list, "protected": True, "section": "Food & Recipes"},
     "radiator_food": {"label": "\U0001F354 Radiator Springs Food", "icon": "Cars", "view": show_radiator_springs_food, "protected": True, "section": "Food & Recipes"},
@@ -3411,10 +3582,11 @@ pages = {
     "event_race": {"label": "\U0001F3C1 Event Race", "icon": "Race", "view": show_event_race, "protected": True, "section": "Interactive"},
     "world_tour": {"label": "\U0001F30D World Tour Recipe", "icon": "Tour", "view": show_world_tour, "protected": True, "section": "Interactive"},
     "settings": {"label": "\u2699\ufe0f Settings", "icon": "Config", "view": show_settings, "protected": True, "section": "Account"},
-    "about": {"label": "ℹ️ Info / About", "icon": "Info", "view": show_about, "protected": False, "section": "General"},
+    "about": {"label": "ℹ️ Info / About", "icon": "Info", "view": show_about_v2, "protected": False, "section": "General"},
 }
 ordered_page_ids = [
     "home",
+    "character_list",
     "auth",
     "products",
     "radiator_food",
@@ -3439,6 +3611,7 @@ st.sidebar.title("Control Deck")
 with st.sidebar.expander("Section Guide", expanded=True):
     st.markdown("""
 - \U0001F3E0 Home / Welcome - Welcome messages from Lightning McQueen and Mater before login
+- \U0001F4D8 Character List - Main characters, AI agents, and villain roster
 - \U0001F510 Login / Register - SQLite-based authentication with admin panel
 - \U0001F4CB Product List - All products with search and filter
 - \U0001F354 Radiator Springs Food - Cars-themed recipes
@@ -3454,6 +3627,7 @@ st.sidebar.markdown(
 <div class="menu-list-box">
 <strong>Menu List</strong><br>
 Home / Welcome<br>
+Character List<br>
 Login / Register<br>
 Product List<br>
 Radiator Springs Food<br>

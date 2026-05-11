@@ -2417,6 +2417,10 @@ def generate_ai_response(user_input, character):
             "Please ask your question again in a respectful way, and I will help right away."
         )
 
+    safety_response = generate_cybersecurity_response_if_needed(user_input, character)
+    if safety_response:
+        return safety_response
+
     greeting_tokens = [
         "hello", "hi", "good morning", "good afternoon", "good evening",
         "magandang umaga", "maayong buntag", "maayong udto", "udto", "maayong gabii", "gabii"
@@ -2683,6 +2687,55 @@ def generate_agentic_response_if_needed(user_input, character):
     )
 
 
+def generate_cybersecurity_response_if_needed(user_input, character):
+    user_input_lower = user_input.lower()
+
+    cyber_keywords = [
+        "hack", "hacking", "exploit", "payload", "ddos", "sql injection",
+        "xss", "phishing", "bruteforce", "penetration test", "pentest",
+        "red team", "security", "defense", "blue team", "incident response",
+        "vulnerability", "bug bounty", "safe test", "authorized testing",
+    ]
+    if not any(keyword in user_input_lower for keyword in cyber_keywords):
+        return None
+
+    target_url = "https://applied-ai-gecbk5bux78yt8ydcuirqh.streamlit.app/"
+    mentions_target = target_url in user_input_lower
+
+    harmful_keywords = [
+        "hack this link", "break in", "bypass login", "steal", "crack",
+        "attack website", "take down", "deface", "ransomware",
+    ]
+    if any(keyword in user_input_lower for keyword in harmful_keywords) or mentions_target:
+        return (
+            f"{character}:\n"
+            "I can't help with hacking or breaking into websites.\n\n"
+            "I can help you do this safely and legally instead:\n"
+            "1. Get written permission and define scope (domains, dates, test type).\n"
+            "2. Run defensive checks: auth hardening, input validation, rate limiting, and logging.\n"
+            "3. Use legal tools for self-owned systems (OWASP ZAP baseline, dependency scan, secrets scan).\n"
+            "4. Write a security report with findings, risk level, and fixes.\n\n"
+            "If you want, I can generate a Blue-Team checklist for that app and a safe test template."
+        )
+
+    if any(token in user_input_lower for token in ["defense", "blue team", "incident response", "secure", "hardening", "authorized"]):
+        return (
+            f"{character} Defense Agent:\n"
+            "Great topic. Here is a practical defensive plan:\n"
+            "1. Asset and access inventory.\n"
+            "2. Threat model (entry points, trust boundaries, abuse paths).\n"
+            "3. Hardening: MFA, least privilege, secure headers, input validation.\n"
+            "4. Detection: centralized logs, anomaly alerts, audit trails.\n"
+            "5. Response: incident playbook, rollback, and post-incident review.\n\n"
+            "Ask me for a step-by-step checklist and I will tailor it to Streamlit apps."
+        )
+
+    return (
+        f"{character}:\n"
+        "I can discuss cybersecurity in a safe way: defense, secure coding, monitoring, incident response, and authorized testing workflows."
+    )
+
+
 def show_chatbot():
     st.markdown("""
     <style>
@@ -2705,7 +2758,7 @@ def show_chatbot():
     st.markdown("""
     <div class='chat-panel'>
         <div class='chat-header'>🤖 Finn-Holley AI Chatbot</div>
-        <div class='chat-hint'>Pick your favorite character, ask about recipes and race strategy, and enjoy the glowing orange-yellow Finn-Holley interface with all emojis intact.</div>
+        <div class='chat-hint'>Pick your favorite character, ask about recipes, race strategy, and safe cybersecurity defense topics with authorized-testing guidance.</div>
     </div>
     """, unsafe_allow_html=True)
     st.markdown("### Choose Your Character:")
@@ -2778,7 +2831,7 @@ def show_chatbot():
     # Chat input
     col1, col2 = st.columns([4, 1])
     with col1:
-        user_input = st.text_input("Ask about a recipe:", key="chat_input", placeholder="e.g., How do I make Sinigang? What is Adobo? Tell me about Halo-Halo...")
+        user_input = st.text_input("Ask about recipes, race, or safe security defense:", key="chat_input", placeholder="e.g., How do I make Sinigang? What is Adobo? Give me a Streamlit app defense checklist...")
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
         send_btn = st.button("📤 Send", key="send_msg", type="primary")
@@ -2793,7 +2846,7 @@ def show_chatbot():
         st.rerun()
     
     # Quick recipe suggestions
-    st.markdown("### 💡 Quick Recipe Questions:")
+    st.markdown("### 💡 Quick Questions:")
     quick_questions = [
         "How do I make Sinigang?",
         "What is Adobo?",
@@ -2805,7 +2858,9 @@ def show_chatbot():
         "How to make Biko?",
         "What is Sisig?",
         "How to cook Egg?",
-        "What is Champorado?"
+        "What is Champorado?",
+        "Give me a safe Blue-Team checklist for a Streamlit app",
+        "How do I do authorized security testing legally?"
     ]
     
     q_cols = st.columns(5)

@@ -875,50 +875,81 @@ def show_product_list():
     st.markdown(f"**Total Products: {len(filtered_products)}**")
 
 
-def show_radiator_springs_food():
-    st.markdown("## 🍔 Radiator Springs Food List")
-    st.markdown("*Delicious recipes from the Cars universe!*")
-    
+def _find_recipe_details(product_name):
+    """Try to map a product name to the recipe knowledge base entry."""
+    product_name_lower = product_name.lower()
+    cleaned_name = re.sub(r"[^a-z0-9\s]", " ", product_name_lower)
+    cleaned_name = re.sub(r"\s+", " ", cleaned_name).strip()
+
+    for recipe_key, recipe_info in RECIPE_KNOWLEDGE.items():
+        key_lower = recipe_key.lower()
+        if key_lower in product_name_lower or key_lower in cleaned_name:
+            return recipe_key, recipe_info
+        if product_name_lower in key_lower:
+            return recipe_key, recipe_info
+    return None, None
+
+
+def _render_food_click_list(category, title, subtitle, session_key):
+    st.markdown(title)
+    st.markdown(subtitle)
+
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute("SELECT * FROM products WHERE category = 'radiator_springs'")
+    c.execute("SELECT * FROM products WHERE category = ?", (category,))
     products = c.fetchall()
     conn.close()
-    
-    cols = st.columns(2)
-    for i, product in enumerate(products):
-        with cols[i % 2]:
-            st.markdown(f"""
-            <div class="recipe-card">
-                <div style="font-size: 60px;">{product['image_emoji']}</div>
-                <div class="card-title">{product['name']}</div>
-                <div class="card-desc">{product['description']}</div>
-                <div class="product-price">${product['price']:.2f}</div>
-            </div>
-            """, unsafe_allow_html=True)
+
+    if not products:
+        st.warning("No food products found for this category.")
+        return
+
+    options = [f"{p['image_emoji']} {p['name']}" for p in products]
+    selected_option = st.radio("Click a food item to view details and recipe:", options, key=session_key)
+    selected_index = options.index(selected_option)
+    selected_product = products[selected_index]
+
+    st.markdown("### Selected Food")
+    st.markdown(
+        f"""
+        <div class="recipe-card">
+            <div style="font-size: 60px;">{selected_product['image_emoji']}</div>
+            <div class="card-title">{selected_product['name']}</div>
+            <div class="card-desc"><strong>Definition:</strong> {selected_product['description']}</div>
+            <div class="product-price">${selected_product['price']:.2f}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    recipe_key, recipe_info = _find_recipe_details(selected_product["name"])
+    st.markdown("### Recipe")
+    if recipe_info:
+        st.markdown(f"**Matched recipe:** `{recipe_key.title()}`")
+        st.markdown(recipe_info)
+    else:
+        st.info(
+            "Recipe details are not yet in the knowledge base for this item. "
+            "You can still use the chatbot to generate recipe ideas for it."
+        )
+
+
+def show_radiator_springs_food():
+    _render_food_click_list(
+        "radiator_springs",
+        "## ?? Radiator Springs Food List",
+        "*Click any food to see the definition and recipe details.*",
+        "radiator_food_selected",
+    )
 
 
 def show_filipino_food():
-    st.markdown("## 🇵🇭 Filipino Food List")
-    st.markdown("*Traditional Filipino dishes from Radiator Springs!*")
-    
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT * FROM products WHERE category = 'filipino'")
-    products = c.fetchall()
-    conn.close()
-    
-    cols = st.columns(2)
-    for i, product in enumerate(products):
-        with cols[i % 2]:
-            st.markdown(f"""
-            <div class="recipe-card">
-                <div style="font-size: 60px;">{product['image_emoji']}</div>
-                <div class="card-title">{product['name']}</div>
-                <div class="card-desc">{product['description']}</div>
-                <div class="product-price">${product['price']:.2f}</div>
-            </div>
-            """, unsafe_allow_html=True)
+    _render_food_click_list(
+        "filipino",
+        "## ???? Filipino Food List",
+        "*Click any Filipino dish to view its definition and recipe.*",
+        "filipino_food_selected",
+    )
 
 
 # ==========================================================
@@ -2796,7 +2827,7 @@ def show_event_race():
     st.markdown("## Event Race")
     st.markdown("""
     <div class='mission-board'>
-        Race the champions in warm orange and yellow glow mode. The event boxes now flex with a glowing gradient style, and every racer card shines like sunrise.
+        Race the champions in warm orange and yellow glow mode. Upgraded event mode now includes long-run strategy, yellow-flag moments, and scheduled pit crew full-repair stops every 15 laps.
     </div>
     """, unsafe_allow_html=True)
     racers = [
@@ -2824,6 +2855,58 @@ def show_event_race():
         {"name": "Chase Racelott", "image": "chase_racelott.png", "color": "#4cc9f0", "desc": "Young rising racer with clean exits."},
         {"name": "Nikolai Javier Jr.", "image": "Nikolai_Javier1.png", "color": "#ff6600", "desc": "Rising star from the Philippines with incredible speed."},
         {"name": "Daria Patrick", "image": "bini_dariapatrick1.png", "color": "#ff1493", "desc": "American racing icon known for her determination and skill."},
+        {"name": "Anderson Shell", "image": "AndersonShell.png", "color": "#f77f00", "desc": "Sharp strategist with elite fuel-saving pace."},
+        {"name": "Kool Oliver", "image": "KoolOliver.png", "color": "#00a6fb", "desc": "Cool-headed racer with smooth tire management."},
+        {"name": "Tyrant Jones", "image": "TyrantJones.png", "color": "#7b2cbf", "desc": "Fearless charger known for bold overtakes."},
+        {"name": "Pandazer", "image": "Pandazer.png", "color": "#1b4332", "desc": "Technical specialist with fast sector splits."},
+        {"name": "Zoda Collins", "image": "ZodaCollins.png", "color": "#ef476f", "desc": "Explosive starter with strong first-lap speed."},
+        {"name": "Mister Ketchum", "image": "MrKetchum.png", "color": "#6a4c93", "desc": "Veteran racer with disciplined race control."},
+        {"name": "Snoop Dogg", "image": "LakerBoy.png", "color": "#ffbe0b", "desc": "Style icon bringing calm confidence to the grid."},
+        {"name": "Stephen Curry", "image": "StepCurry.png", "color": "#1d4ed8", "desc": "Precision ace with laser-accurate lines."},
+        {"name": "Anthony Edwards", "image": "AntManGuy.png", "color": "#e63946", "desc": "Dynamic attacker with high-speed reflexes."},
+        {"name": "LeBron James", "image": "BronJames.png", "color": "#7f5539", "desc": "Powerhouse racer with unmatched race IQ."},
+        {"name": "BTS V", "image": "BTSBoy.png", "color": "#023e8a", "desc": "Elegant driver with clean rhythm and flair."},
+        {"name": "Pierre Bouvier", "image": "SimplePlan.png", "color": "#5a189a", "desc": "Composed competitor with steady lap flow."},
+        {"name": "Alex Gaskarth", "image": "AllTimeLow.png", "color": "#264653", "desc": "Fast adapter who shines in changing conditions."},
+        {"name": "Victor Gyokeres", "image": "ArsenalGunners.png", "color": "#c1121f", "desc": "Powerful finisher with relentless pace."},
+        {"name": "Bruno Fernandes", "image": "ManUnited.png", "color": "#9d0208", "desc": "Creative tactician with smart pit timing."},
+        {"name": "Erling Haaland", "image": "ManCity.png", "color": "#48cae4", "desc": "High-output racer built for straight-line speed."},
+        {"name": "Lamine Yamal", "image": "FCBarcelona.png", "color": "#003049", "desc": "Young prodigy with fearless racecraft."},
+        {"name": "Vini Jr.", "image": "RealMadrid.png", "color": "#f1faee", "desc": "Electric pace with rapid corner exits."},
+        {"name": "Steven Wirtz", "image": "LiverpoolFC.png", "color": "#d90429", "desc": "Mid-race maestro with excellent consistency."},
+        {"name": "Mark Hoppus", "image": "182blink.png", "color": "#2a9d8f", "desc": "Steady tempo racer with reliable late laps."},
+        {"name": "Billie Joe Armstrong", "image": "GreenDay.png", "color": "#386641", "desc": "Aggressive line-taker with punk-speed energy."},
+        {"name": "Olivia Rodrigo", "image": "OliviaRodrigo.png", "color": "#ff4d6d", "desc": "Rising threat with confident race rhythm."},
+        {"name": "Osumane Dembele", "image": "PSG.png", "color": "#14213d", "desc": "Rapid mover with unpredictable acceleration."},
+        {"name": "Jayson Tatum", "image": "Celtic.png", "color": "#2d6a4f", "desc": "Balanced performer with clutch final laps."},
+        {"name": "Jeremy McKinnon", "image": "ADTR.png", "color": "#3a0ca3", "desc": "Heavy-hitting racer with strong race starts."},
+        {"name": "Kelly O'Connor", "image": "Sourpatch.png", "color": "#80ed99", "desc": "Creative racer with surprise strategy calls."},
+        {"name": "Denise Simmons", "image": "Chitos.png", "color": "#f77f00", "desc": "Orange-zone sprinter with fearless dives."},
+        {"name": "Simon Simmons", "image": "Ritos.png", "color": "#ff7b00", "desc": "Late-race attacker with crisp overtakes."},
+        {"name": "Tyrell Park", "image": "ColaCola.png", "color": "#d62828", "desc": "Endurance-focused racer with steady control."},
+        {"name": "Jim Johnson", "image": "JimiJohnson.png", "color": "#6c757d", "desc": "Old-school racer with durable race pace."},
+        {"name": "Tyrese Haliburton", "image": "Haliburton.png", "color": "#1d4ed8", "desc": "Smooth operator with efficient tire usage."},
+        {"name": "Dame Time", "image": "dametime.png", "color": "#4361ee", "desc": "Clutch specialist who closes races hard."},
+        {"name": "Aiah Arceta", "image": "BINIaiah.png", "color": "#00b4d8", "desc": "Focused racer with polished corner execution."},
+        {"name": "Colet Vergara", "image": "BINIcolet.png", "color": "#f72585", "desc": "High-energy racer with quick recovery speed."},
+        {"name": "Maloi Ricalde", "image": "BINImaloi.png", "color": "#ffb703", "desc": "Confident tactician with stable lap timing."},
+        {"name": "Gwen Apuli", "image": "BINIgwen.png", "color": "#8ecae6", "desc": "Calm competitor with precise line control."},
+        {"name": "Stacey Sevilleja", "image": "BINIstacey.png", "color": "#fb8500", "desc": "Strong starter with excellent launch pace."},
+        {"name": "Mikha Lim", "image": "BINImikha.png", "color": "#d90429", "desc": "Red-hot racer with aggressive mid-lap gain."},
+        {"name": "Jhoanna Robles", "image": "BINIJhoanna.png", "color": "#219ebc", "desc": "Strategic racer with balanced risk control."},
+        {"name": "Sheena Catacutan", "image": "BINISheena.png", "color": "#8338ec", "desc": "Fast learner with adaptable race style."},
+        {"name": "Loisa Andalio", "image": "BINIteal.png", "color": "#00afb9", "desc": "Teal-speed specialist with strong late pace."},
+        {"name": "AC Bonifacio", "image": "ACBonifacio.png", "color": "#ff006e", "desc": "Showtime racer with sharp attack windows."},
+        {"name": "Vivoree Esclito", "image": "VivoreeEsclito.png", "color": "#ff7096", "desc": "Consistent performer with clean race tempo."},
+        {"name": "Charlotte Madison", "image": "Charlotte.png", "color": "#8d99ae", "desc": "Reliable racer with steady technical pace."},
+        {"name": "Cristiano Ronaldo", "image": "CRonaldo.png", "color": "#6d6875", "desc": "Elite competitor with unmatched winning focus."},
+        {"name": "Harry Kane", "image": "BayernMunich.png", "color": "#780000", "desc": "Clinical finisher with strong race execution."},
+        {"name": "Princess Peach", "image": "PrincessPeach.png", "color": "#ff8fab", "desc": "Graceful racer with smooth line precision."},
+        {"name": "Princess Daisy", "image": "PrincessDaisy.png", "color": "#ff9f1c", "desc": "Sunny-speed racer with fearless confidence."},
+        {"name": "Luigi", "image": "SuperLuigi.png", "color": "#2b9348", "desc": "Classic kart hero with nimble handling."},
+        {"name": "Mario", "image": "SuperMario.png", "color": "#e63946", "desc": "Legendary all-round racer with clutch boosts."},
+        {"name": "Rosalina", "image": "PrincessRosalina.png", "color": "#48bfe3", "desc": "Cosmic strategist with elegant long-run pace."},
+        {"name": "Yoshi", "image": "Yoshi.png", "color": "#52b788", "desc": "Quick-reacting racer with playful speed bursts."},
     ]
     cols = st.columns(3)
     for i, racer in enumerate(racers):
@@ -2843,7 +2926,7 @@ def show_event_race():
     st.markdown("### Race Setup")
     setup_col1, setup_col2, setup_col3, setup_col4 = st.columns(4)
     with setup_col1:
-        laps = st.slider("Laps", min_value=3, max_value=30, value=10)
+        laps = st.slider("Laps", min_value=70, max_value=100, value=70)
     with setup_col2:
         weather = st.selectbox("Weather", ["Sunny", "Cloudy", "Windy", "Rainy"])
     with setup_col3:
@@ -2857,17 +2940,18 @@ def show_event_race():
         ])
     with setup_col4:
         race_mode = st.selectbox("Race Mode", ["Simulator", "Arcade"])
-    rooted_racers = st.multiselect(
-        "Choose racers to root for",
-        [r["name"] for r in racers],
-        default=["Lightning McQueen"],
-        help="Rooted racers get a small morale boost in simulation.",
+    racer_names = [r["name"] for r in racers]
+    if "event_race_last_results" not in st.session_state:
+        st.session_state.event_race_last_results = None
+    if "event_race_last_events" not in st.session_state:
+        st.session_state.event_race_last_events = []
+    if "event_race_last_meta" not in st.session_state:
+        st.session_state.event_race_last_meta = {}
+    st.info(
+        f"Full-grid race enabled: all {len(racers)} racers will participate in both Simulator and Arcade modes."
     )
-    if rooted_racers:
-        st.info("Rooting crowd favorites: " + ", ".join(rooted_racers))
     st.markdown("### Race Results Simulator")
     if st.button("Start Race!", type="primary"):
-        import random
         weather_seconds = {"Sunny": 0.0, "Cloudy": 0.3, "Windy": 0.7, "Rainy": 1.2}
         track_seconds = {
             "Radiator Springs Speedway": 0.2,
@@ -2877,70 +2961,129 @@ def show_event_race():
             "Batangas Racing Circuit (Rosario, Batangas)": 0.7,
             "Fuji Speedway": 0.4,
         }
-        base_time = {
-            "Lightning McQueen": 16.1,
-            "Francesco Bernoulli": 16.3,
-            "Jackson Storm": 15.8,
-            "Cal Weathers": 16.8,
-            "Rip Clutchgoneski": 17.0,
-            "Carla Veloso": 16.5,
-            "Cruz Ramirez": 16.2,
-            "Jeff Gorvette": 16.6,
-            "Miguel Camino": 16.9,
-            "Max Schnell": 16.7,
-            "Bobby Swift": 16.4,
-            "Chick Hicks": 18.5,
-            "Lewis Hamilton": 15.7,
-            "Todd Marcus": 17.2,
-            "Raoul \u00C7aRoule": 16.9,
-            "Shu Todoroki": 16.6,
-            "Nigel Gearsley": 16.8,
-            "Dud Throttleman": 17.4,
-            "Speedy Comet": 16.0,
-            "Brick Yardley": 17.3,
-            "Bubba Wheelhouse": 17.6,
-            "Chase Racelott": 16.4,
-            "Nikolai Javier Jr.": 16.3,
-            "Daria Patrick": 16.5,
+        base_time = {}
+        for idx, name in enumerate(racer_names):
+            base_time[name] = 16.0 + (idx % 9) * 0.12 + random.uniform(-0.35, 0.35)
+
+        featured_pace_bonus = {
+            "Lightning McQueen": -0.25,
+            "Francesco Bernoulli": -0.2,
+            "Jackson Storm": -0.28,
+            "Cruz Ramirez": -0.18,
+            "Lewis Hamilton": -0.3,
+            "Nikolai Javier Jr.": -0.14,
         }
+        for name, bonus in featured_pace_bonus.items():
+            if name in base_time:
+                base_time[name] += bonus
+
+        entrants = racers
         mode_variation = 1.5 if race_mode == "Simulator" else 0.8
-        support_bonus = 0.25 if race_mode == "Simulator" else 0.15
         results = []
-        for racer in racers:
+        event_feed = []
+        for racer in entrants:
             lap_times = []
-            for _ in range(laps):
+            wear_penalty = 0.0
+            status = "FINISHED"
+            completed_laps = 0
+            for lap in range(1, laps + 1):
+                completed_laps = lap
+                yellow_flag_penalty = 0.0
+                if random.random() <= 0.08:
+                    yellow_flag_penalty = random.uniform(0.6, 1.3)
+                    event_feed.append(f"Lap {lap}: Yellow flag out. {racer['name']} reduced pace under caution.")
+
+                # Rare major incident: racer is out for the entire race.
+                if random.random() <= 0.012:
+                    status = "OUT (Massive Crash)"
+                    event_feed.append(f"Lap {lap}: Massive crash! {racer['name']} is out of the race.")
+                    break
+
+                if lap % 15 == 0:
+                    event_feed.append(f"Lap {lap}: {racer['name']} pit crew full repair complete. Race restarts at same lap count.")
+                    wear_penalty = 0.0
+                    pit_stop_penalty = random.uniform(3.8, 5.6)
+                else:
+                    wear_penalty += random.uniform(0.01, 0.045)
+                    pit_stop_penalty = 0.0
+
                 lap_time = (
                     base_time[racer["name"]]
                     + weather_seconds[weather]
                     + track_seconds[track]
                     + random.uniform(-mode_variation, mode_variation)
+                    + yellow_flag_penalty
+                    + wear_penalty
+                    + pit_stop_penalty
                 )
-                if racer["name"] in rooted_racers:
-                    lap_time -= support_bonus
                 lap_times.append(max(0.1, lap_time))
-            total_time = sum(lap_times)
-            avg_lap_time = total_time / laps
-            best_lap = min(lap_times)
-            is_rooted = racer["name"] in rooted_racers
-            results.append((racer["name"], total_time, avg_lap_time, best_lap, is_rooted))
-        ranking = sorted(results, key=lambda x: x[1])
+            if status == "OUT (Massive Crash)":
+                total_time = float("inf")
+                avg_lap_time = 0.0
+                best_lap = 0.0
+            else:
+                total_time = sum(lap_times)
+                avg_lap_time = total_time / laps
+                best_lap = min(lap_times) if lap_times else 0.0
+            results.append((racer["name"], total_time, avg_lap_time, best_lap, status, completed_laps))
+        ranking = sorted(results, key=lambda x: (x[4] != "FINISHED", x[1]))
+        st.session_state.event_race_last_results = ranking
+        st.session_state.event_race_last_events = event_feed
+        st.session_state.event_race_last_meta = {
+            "laps": laps,
+            "track": track,
+            "mode": race_mode,
+            "weather": weather,
+        }
+    if st.session_state.event_race_last_results:
+        ranking = st.session_state.event_race_last_results
+        event_feed = st.session_state.event_race_last_events
+        race_meta = st.session_state.event_race_last_meta
+        finished_racers = [r for r in ranking if r[4] == "FINISHED"]
+        if finished_racers:
+            winner = finished_racers[0]
+            st.success(
+                f"Winner: {winner[0]} | Total Time: {winner[1]:.2f}s | "
+                f"Laps: {race_meta.get('laps', laps)} | Track: {race_meta.get('track', track)} | Mode: {race_meta.get('mode', race_mode)}"
+            )
+        else:
+            st.error("No winner: all racers were out due to massive crashes.")
         st.success(
-            f"Winner: {ranking[0][0]} | Total Time: {ranking[0][1]:.2f}s | "
-            f"Laps: {laps} | Track: {track} | Mode: {race_mode}"
+            f"Race Battle Summary | Weather: {race_meta.get('weather', weather)} | "
+            f"Track: {race_meta.get('track', track)} | Laps: {race_meta.get('laps', laps)}"
         )
+        st.markdown("### Race Control Events")
+        if event_feed:
+            for event_line in event_feed[:25]:
+                st.write(f"- {event_line}")
+            if len(event_feed) > 25:
+                st.write(f"- ...and {len(event_feed) - 25} more race-control updates.")
+        else:
+            st.write("- Clean race: no yellow-flag incidents triggered this run.")
         st.markdown("### Podium")
-        for idx, (name, total_time, avg_lap, best_lap, is_rooted) in enumerate(ranking[:3], start=1):
-            rooted_tag = " [ROOTED]" if is_rooted else ""
-            st.write(
-                f"{idx}. **{name}**{rooted_tag} - Total: {total_time:.2f}s | "
-                f"Avg Lap: {avg_lap:.2f}s | Best Lap: {best_lap:.2f}s"
-            )
+        if finished_racers:
+            for idx, (name, total_time, avg_lap, best_lap, status, completed_laps) in enumerate(finished_racers[:3], start=1):
+                st.write(
+                    f"{idx}. **{name}** - Total: {total_time:.2f}s | "
+                    f"Avg Lap: {avg_lap:.2f}s | Best Lap: {best_lap:.2f}s | Status: {status}"
+                )
+        else:
+            st.write("No podium available this race.")
         st.markdown("### Full Standings (Lap-Based Win)")
-        for idx, (name, total_time, avg_lap, best_lap, is_rooted) in enumerate(ranking, start=1):
-            rooted_tag = " [ROOTED]" if is_rooted else ""
-            st.write(
-                f"{idx}. {name}{rooted_tag} (Total: {total_time:.2f}s, Avg: {avg_lap:.2f}s, Best Lap: {best_lap:.2f}s)"
-            )
+        for idx, (name, total_time, avg_lap, best_lap, status, completed_laps) in enumerate(ranking, start=1):
+            if status == "FINISHED":
+                st.write(
+                    f"{idx}. {name} (Total: {total_time:.2f}s, Avg: {avg_lap:.2f}s, Best Lap: {best_lap:.2f}s, Status: {status})"
+                )
+            else:
+                st.write(
+                    f"{idx}. {name} (Status: {status}, Out On Lap: {completed_laps})"
+                )
+        if st.button("Reset Race Battle"):
+            st.session_state.event_race_last_results = None
+            st.session_state.event_race_last_events = []
+            st.session_state.event_race_last_meta = {}
+            st.rerun()
 def show_world_tour():
     st.markdown("## World Tour Recipe")
     st.markdown("*Complete 5 missions first, then haunt enemy teams against the Lemons and Clippers to unlock recipes!*")
@@ -3310,5 +3453,6 @@ else:
 
 if pages[st.session_state.selected_page]["section"] == "General":
     render_general_footer()
+
 
 

@@ -3289,7 +3289,7 @@ def show_settings():
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
     else:
-        st.warning("Please login to access account settings!")
+        st.info("Guest mode is active. Login is optional.")
 
     st.markdown("### 🎨 Theme Settings")
     theme_options = ["Orange & Yellow Glow", "Classic Radiator Springs", "Night Racer"]
@@ -3575,13 +3575,13 @@ pages = {
     "home": {"label": "\U0001F3E0 Home / Welcome", "icon": "Home", "view": show_home_v2, "protected": False, "section": "General"},
     "character_list": {"label": "\U0001F4D8 Character List", "icon": "Cast", "view": show_character_list, "protected": False, "section": "General"},
     "auth": {"label": "\U0001F510 Login / Register", "icon": "Auth", "view": show_login_register, "protected": False, "section": "General"},
-    "products": {"label": "\U0001F4CB Product List", "icon": "Menu", "view": show_product_list, "protected": True, "section": "Food & Recipes"},
-    "radiator_food": {"label": "\U0001F354 Radiator Springs Food", "icon": "Cars", "view": show_radiator_springs_food, "protected": True, "section": "Food & Recipes"},
-    "filipino_food": {"label": "\U0001F1F5\U0001F1ED Filipino Food List", "icon": "PH", "view": show_filipino_food, "protected": True, "section": "Food & Recipes"},
-    "chatbot": {"label": "\U0001F916 Finn-Holley AI Chatbot", "icon": "AI", "view": show_chatbot, "protected": True, "section": "Interactive"},
-    "event_race": {"label": "\U0001F3C1 Event Race", "icon": "Race", "view": show_event_race, "protected": True, "section": "Interactive"},
-    "world_tour": {"label": "\U0001F30D World Tour Recipe", "icon": "Tour", "view": show_world_tour, "protected": True, "section": "Interactive"},
-    "settings": {"label": "\u2699\ufe0f Settings", "icon": "Config", "view": show_settings, "protected": True, "section": "Account"},
+    "products": {"label": "\U0001F4CB Product List", "icon": "Menu", "view": show_product_list, "protected": False, "section": "Food & Recipes"},
+    "radiator_food": {"label": "\U0001F354 Radiator Springs Food", "icon": "Cars", "view": show_radiator_springs_food, "protected": False, "section": "Food & Recipes"},
+    "filipino_food": {"label": "\U0001F1F5\U0001F1ED Filipino Food List", "icon": "PH", "view": show_filipino_food, "protected": False, "section": "Food & Recipes"},
+    "chatbot": {"label": "\U0001F916 Finn-Holley AI Chatbot", "icon": "AI", "view": show_chatbot, "protected": False, "section": "Interactive"},
+    "event_race": {"label": "\U0001F3C1 Event Race", "icon": "Race", "view": show_event_race, "protected": False, "section": "Interactive"},
+    "world_tour": {"label": "\U0001F30D World Tour Recipe", "icon": "Tour", "view": show_world_tour, "protected": False, "section": "Interactive"},
+    "settings": {"label": "\u2699\ufe0f Settings", "icon": "Config", "view": show_settings, "protected": False, "section": "Account"},
     "about": {"label": "ℹ️ Info / About", "icon": "Info", "view": show_about_v2, "protected": False, "section": "General"},
 }
 ordered_page_ids = [
@@ -3674,11 +3674,7 @@ selected_page = st.sidebar.radio(
 )
 st.session_state.selected_page = selected_page
 page = pages[selected_page]
-if page["protected"] and not st.session_state.logged_in:
-    st.warning("Please login to access this page.")
-    show_login_register()
-else:
-    page["view"]()
+page["view"]()
 
 if pages[st.session_state.selected_page]["section"] == "General":
     render_general_footer()

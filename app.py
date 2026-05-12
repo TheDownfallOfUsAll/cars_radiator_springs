@@ -5,6 +5,7 @@ import os
 import re
 import difflib
 import random
+import uuid
 from datetime import datetime
 
 # ==========================================================
@@ -70,6 +71,28 @@ def init_db():
             ('Puto', 'Steamed rice cake', 3.99, 'filipino', '🍚'),
         ]
         c.executemany("INSERT INTO products (name, description, price, category, image_emoji) VALUES (?, ?, ?, ?, ?)", products)
+
+    # Chat messages table for ChatGPT-style persistent conversation memory
+    c.execute('''CREATE TABLE IF NOT EXISTS chat_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id TEXT NOT NULL,
+        character TEXT NOT NULL,
+        role TEXT NOT NULL,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )''')
+
+    # Chat response cache table for faster repeated real-world Q&A
+    c.execute('''CREATE TABLE IF NOT EXISTS chat_response_cache (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        character TEXT NOT NULL,
+        question_norm TEXT NOT NULL,
+        question_raw TEXT NOT NULL,
+        response TEXT NOT NULL,
+        source TEXT DEFAULT 'openai',
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(character, question_norm)
+    )''')
     
     conn.commit()
     conn.close()
@@ -114,6 +137,113 @@ def get_all_users():
     users = c.fetchall()
     conn.close()
     return users
+
+def get_active_chat_session_id():
+    if "chat_session_id" not in st.session_state:
+        st.session_state.chat_session_id = f"session_{uuid.uuid4().hex[:12]}"
+    return st.session_state.chat_session_id
+
+def save_chat_message(session_id, character, role, content):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO chat_messages (session_id, character, role, content) VALUES (?, ?, ?, ?)",
+        (session_id, character, role, content),
+    )
+    conn.commit()
+    conn.close()
+
+def load_chat_messages(session_id, limit=60):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        """
+        SELECT role, content, character, created_at
+        FROM chat_messages
+        WHERE session_id = ?
+        ORDER BY id ASC
+        LIMIT ?
+        """,
+        (session_id, limit),
+    )
+    rows = c.fetchall()
+    conn.close()
+    return rows
+
+def clear_chat_messages(session_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("DELETE FROM chat_messages WHERE session_id = ?", (session_id,))
+    conn.commit()
+    conn.close()
+
+def get_cached_chat_response(character, user_input):
+    question_norm = normalize_text(user_input)
+    if not question_norm:
+        return None
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        """
+        SELECT response
+        FROM chat_response_cache
+        WHERE character = ? AND question_norm = ?
+        LIMIT 1
+        """,
+        (character, question_norm),
+    )
+    row = c.fetchone()
+    conn.close()
+    return row["response"] if row else None
+
+def upsert_cached_chat_response(character, user_input, response_text, source="openai"):
+    question_norm = normalize_text(user_input)
+    if not question_norm or not response_text:
+        return
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        """
+        INSERT INTO chat_response_cache (character, question_norm, question_raw, response, source)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(character, question_norm)
+        DO UPDATE SET
+            question_raw = excluded.question_raw,
+            response = excluded.response,
+            source = excluded.source,
+            updated_at = CURRENT_TIMESTAMP
+        """,
+        (character, question_norm, user_input, response_text, source),
+    )
+    conn.commit()
+    conn.close()
+
+def retrieve_cached_examples(character, user_input, top_n=2):
+    question_norm = normalize_text(user_input)
+    if not question_norm:
+        return []
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        """
+        SELECT question_raw, response
+        FROM chat_response_cache
+        WHERE character = ?
+        ORDER BY updated_at DESC
+        LIMIT 25
+        """,
+        (character,),
+    )
+    rows = c.fetchall()
+    conn.close()
+    scored = []
+    for row in rows:
+        q = row["question_raw"]
+        score = difflib.SequenceMatcher(None, question_norm, normalize_text(q)).ratio()
+        if score > 0.45:
+            scored.append((score, row["question_raw"], row["response"]))
+    scored.sort(reverse=True, key=lambda x: x[0])
+    return [{"question": q, "response": r, "score": s} for s, q, r in scored[:top_n]]
 
 # ==========================================================
 # PAGE CONFIG
@@ -2502,7 +2632,12 @@ def generate_ai_response(user_input, character):
                 + get_character_response(top_match['recipe_info'], character)
             )
 
-    # Try to use Ollama for other questions
+    # Try OpenAI ChatGPT for real-world responses with character + RAG context
+    openai_response = generate_openai_response(user_input, character, retrieved)
+    if openai_response:
+        return openai_response
+
+    # Optional local fallback using Ollama
     try:
         import requests
         retrieved_context = ''
@@ -2533,6 +2668,91 @@ def generate_ai_response(user_input, character):
     
     # Fallback to character-specific responses
     return get_character_fallback(user_input, character)
+
+def generate_openai_response(user_input, character, retrieved):
+    api_key = st.session_state.get("openai_api_key") or os.getenv("OPENAI_API_KEY", "")
+    if not api_key:
+        return None
+
+    cached = get_cached_chat_response(character, user_input)
+    if cached:
+        return cached
+
+    model = st.session_state.get("openai_model") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+
+    retrieved_context = ""
+    if retrieved:
+        retrieved_context = "\n\n".join([
+            f"- {item['recipe_name']}: {item['recipe_info'][:420].strip()}..."
+            for item in retrieved
+        ])
+
+    safety_and_role_prompt = (
+        f"You are {character} from Cars, acting as a helpful AI agent inside the Cars Radiator Springs app. "
+        "Stay in character but prioritize accurate, useful answers. "
+        "You can answer recipes, race strategy, and general real-world questions. "
+        "If a user asks for hacking/abuse, refuse and redirect to legal defensive guidance only. "
+        "Use concise formatting with clear steps when useful. "
+        "When recipe context is provided, treat it as trusted app RAG context."
+    )
+
+    messages = [{"role": "system", "content": safety_and_role_prompt}]
+    if retrieved_context:
+        messages.append(
+            {
+                "role": "system",
+                "content": "RAG Context from local recipe knowledge base:\n" + retrieved_context,
+            }
+        )
+
+    cached_examples = retrieve_cached_examples(character, user_input, top_n=2)
+    if cached_examples:
+        few_shot = "\n\n".join(
+            [f"Q: {item['question']}\nA: {item['response'][:320]}" for item in cached_examples]
+        )
+        messages.append(
+            {
+                "role": "system",
+                "content": "SQLite memory examples from previous approved answers:\n" + few_shot,
+            }
+        )
+
+    history = st.session_state.get("chat_history", [])
+    if not history:
+        session_id = st.session_state.get("chat_session_id")
+        if session_id:
+            db_rows = load_chat_messages(session_id, limit=12)
+            history = [{"role": row["role"], "content": row["content"]} for row in db_rows]
+
+    for msg in history[-10:]:
+        role = "assistant" if msg.get("role") == "bot" else "user"
+        messages.append({"role": role, "content": msg.get("content", "")})
+
+    messages.append({"role": "user", "content": user_input})
+
+    try:
+        import requests
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": model,
+                "messages": messages,
+                "temperature": 0.6,
+            },
+            timeout=45,
+        )
+        if response.status_code == 200:
+            content = response.json()["choices"][0]["message"]["content"].strip()
+            if content:
+                upsert_cached_chat_response(character, user_input, content, source="openai")
+                return content
+    except:
+        return None
+    return None
 
 
 def get_character_response(recipe_info, character):
@@ -2693,7 +2913,7 @@ def generate_cybersecurity_response_if_needed(user_input, character):
     cyber_keywords = [
         "hack", "hacking", "exploit", "payload", "ddos", "sql injection",
         "xss", "phishing", "bruteforce", "penetration test", "pentest",
-        "red team", "security", "defense", "blue team", "incident response",
+        "red team", "security", "defense", "activity defense", "blue team", "incident response",
         "vulnerability", "bug bounty", "safe test", "authorized testing",
     ]
     if not any(keyword in user_input_lower for keyword in cyber_keywords):
@@ -2721,11 +2941,11 @@ def generate_cybersecurity_response_if_needed(user_input, character):
     if any(token in user_input_lower for token in ["defense", "blue team", "incident response", "secure", "hardening", "authorized"]):
         return (
             f"{character} Defense Agent:\n"
-            "Great topic. Here is a practical defensive plan:\n"
+            "Great topic. Here is a practical Hacking and Activity Defense plan:\n"
             "1. Asset and access inventory.\n"
             "2. Threat model (entry points, trust boundaries, abuse paths).\n"
             "3. Hardening: MFA, least privilege, secure headers, input validation.\n"
-            "4. Detection: centralized logs, anomaly alerts, audit trails.\n"
+            "4. Activity defense and detection: centralized logs, anomaly alerts, audit trails, and abuse-rate monitoring.\n"
             "5. Response: incident playbook, rollback, and post-incident review.\n\n"
             "Ask me for a step-by-step checklist and I will tailor it to Streamlit apps."
         )
@@ -2758,9 +2978,27 @@ def show_chatbot():
     st.markdown("""
     <div class='chat-panel'>
         <div class='chat-header'>🤖 Finn-Holley AI Chatbot</div>
-        <div class='chat-hint'>Pick your favorite character, ask about recipes, race strategy, and safe cybersecurity defense topics with authorized-testing guidance.</div>
+        <div class='chat-hint'>Pick your AI Agent and chat using real-world OpenAI ChatGPT responses, with built-in RAG recipe retrieval, Agentic AI planning, and safe Hacking/Activity Defense support.</div>
     </div>
     """, unsafe_allow_html=True)
+    with st.expander("OpenAI ChatGPT Setup", expanded=False):
+        entered_key = st.text_input(
+            "OpenAI API Key",
+            type="password",
+            value=st.session_state.get("openai_api_key", ""),
+            help="Stored in this app session only. You can also set OPENAI_API_KEY as an environment variable.",
+        )
+        if entered_key:
+            st.session_state.openai_api_key = entered_key.strip()
+        st.session_state.openai_model = st.text_input(
+            "OpenAI Model",
+            value=st.session_state.get("openai_model", "gpt-4.1-mini"),
+            help="Example: gpt-4.1-mini",
+        ).strip() or "gpt-4.1-mini"
+        if st.session_state.get("openai_api_key") or os.getenv("OPENAI_API_KEY"):
+            st.success("OpenAI is configured. Chatbot will use ChatGPT for real-world responses.")
+        else:
+            st.info("No OpenAI key found yet. The app will use local fallback until a key is provided.")
     st.markdown("### Choose Your Character:")
     
     characters = {
@@ -2859,6 +3097,8 @@ def show_chatbot():
         "What is Sisig?",
         "How to cook Egg?",
         "What is Champorado?",
+        "Use RAG and compare Sinigang vs Adobo ingredients",
+        "Create an Agentic AI meal plan + shopping list for 3 dishes",
         "Give me a safe Blue-Team checklist for a Streamlit app",
         "How do I do authorized security testing legally?"
     ]
@@ -2876,6 +3116,118 @@ def show_chatbot():
     if st.button("\U0001F5D1\ufe0f Clear Chat"):
         st.session_state.chat_history = []
         st.rerun()
+
+
+def show_chatbot_v2():
+    st.markdown(
+        """
+    <div class='chat-panel'>
+        <div class='chat-header'>Finn-Holley AI Chatbot</div>
+        <div class='chat-hint'>ChatGPT-style UI with real-world OpenAI responses, SQLite memory, RAG recipe context, and safe Hacking/Activity Defense.</div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+    with st.expander("OpenAI ChatGPT Setup", expanded=False):
+        entered_key = st.text_input(
+            "OpenAI API Key",
+            type="password",
+            value=st.session_state.get("openai_api_key", ""),
+            help="Stored in current Streamlit session only. You can also use OPENAI_API_KEY environment variable.",
+        )
+        if entered_key:
+            st.session_state.openai_api_key = entered_key.strip()
+        st.session_state.openai_model = st.text_input(
+            "OpenAI Model",
+            value=st.session_state.get("openai_model", "gpt-4.1-mini"),
+        ).strip() or "gpt-4.1-mini"
+        if st.session_state.get("openai_api_key") or os.getenv("OPENAI_API_KEY"):
+            st.success("OpenAI is configured.")
+        else:
+            st.info("Add your OpenAI API key to enable real-world ChatGPT responses.")
+
+    characters = {
+        "Finn McMissle": "\U0001F3A9",
+        "Holley Shiftwell": "\U0001F4AB",
+        "Rod Redline": "\U0001F527",
+        "Leland Turbo": "\u26A1",
+        "Tomber": "\U0001F699",
+        "Miles Axelrod": "\U0001F697",
+        "Professor Zundapp": "\U0001F9EA",
+        "Lightning McQueen": "\U0001F3CE\uFE0F",
+        "Mater": "\U0001F69C",
+        "Jackson Storm": "\U0001F5A4",
+    }
+    selected_char = st.session_state.get("chatbot_char", "Finn McMissle")
+
+    st.markdown("### Choose AI Agent")
+    char_cols = st.columns(5)
+    for i, (name, emoji) in enumerate(characters.items()):
+        with char_cols[i % 5]:
+            label = f"{emoji} {name}" + (" *" if selected_char == name else "")
+            if st.button(label, key=f"chatgpt_char_{name}", type="secondary"):
+                st.session_state.chatbot_char = name
+                st.rerun()
+    selected_char = st.session_state.get("chatbot_char", "Finn McMissle")
+    st.caption(f"Active agent: {characters.get(selected_char, '')} {selected_char}")
+
+    session_id = get_active_chat_session_id()
+    db_history = load_chat_messages(session_id, limit=80)
+    st.session_state.chat_history = [
+        {"role": row["role"], "content": row["content"], "character": row["character"]}
+        for row in db_history
+    ]
+
+    for msg in st.session_state.chat_history:
+        if msg["role"] == "user":
+            with st.chat_message("user", avatar="\U0001F9D1"):
+                st.markdown(msg["content"])
+        else:
+            avatar = characters.get(msg.get("character", selected_char), "\U0001F916")
+            with st.chat_message("assistant", avatar=avatar):
+                st.markdown(f"**{msg.get('character', selected_char)}**\n\n{msg['content']}")
+
+    def handle_user_prompt(prompt_text):
+        if not prompt_text or not prompt_text.strip():
+            return
+        prompt_text = prompt_text.strip()
+        save_chat_message(session_id, selected_char, "user", prompt_text)
+        bot_response = generate_ai_response(prompt_text, selected_char)
+        save_chat_message(session_id, selected_char, "bot", bot_response)
+        st.rerun()
+
+    st.markdown("### Quick Prompts")
+    quick_questions = [
+        "How do I make Sinigang?",
+        "What is Adobo?",
+        "Tell me about Halo-Halo",
+        "Use RAG and compare Sinigang vs Adobo ingredients",
+        "Create an Agentic AI meal plan and shopping list for 3 dishes",
+        "Give me a safe Blue-Team checklist for a Streamlit app",
+    ]
+    q_cols = st.columns(3)
+    for i, q in enumerate(quick_questions):
+        with q_cols[i % 3]:
+            if st.button(q, key=f"chatgpt_quick_{i}"):
+                handle_user_prompt(q)
+
+    user_prompt = st.chat_input(
+        "Message Finn-Holley AI Chatbot (recipes, real-world Q&A, race strategy, safe defense topics)..."
+    )
+    if user_prompt:
+        handle_user_prompt(user_prompt)
+
+    action_cols = st.columns(2)
+    with action_cols[0]:
+        if st.button("Clear Current Chat"):
+            clear_chat_messages(session_id)
+            st.session_state.chat_history = []
+            st.rerun()
+    with action_cols[1]:
+        if st.button("Start New Chat Session"):
+            st.session_state.chat_session_id = f"session_{uuid.uuid4().hex[:12]}"
+            st.session_state.chat_history = []
+            st.rerun()
 
 
 def show_event_race():
@@ -3533,6 +3885,84 @@ def show_character_list():
             ("Kevin Durant", "KevinDurant.png", "Assistant leader of Clippers"),
             ("Michael Jordan", "MichaelJordan.png", "Leader of Clippers and Lemons; main antagonist"),
         ]),
+        ("Racers", [
+            ("Lightning McQueen", "cars_2_mcquee12.png", "The red racing legend - 5-time Piston Cup Champion!"),
+            ("Francesco Bernoulli", "francesco_bernoulli.png", "The Italian speedster - Lightning's biggest rival!"),
+            ("Jackson Storm", "jackson_storm.png", "Next-gen racer - sleek and powerful."),
+            ("Cal Weathers", "cal_weathers.png", "Veteran racer with strong consistency."),
+            ("Rip Clutchgoneski", "rip_clutchgoneski.png", "New Republic's determined world-class racer."),
+            ("Carla Veloso", "carla_veloso.png", "Brazilian star known for samba-style speed."),
+            ("Cruz Ramirez", "cruz_ramirez.png", "Trainer turned top racer with elite pace."),
+            ("Jeff Gorvette", "jeff_gorvette.png", "American champion with smooth cornering."),
+            ("Miguel Camino", "miguel_camino.png", "Spanish racer combining rhythm and precision."),
+            ("Max Schnell", "max_schnell.png", "German racer built for technical tracks."),
+            ("Bobby Swift", "bobby_swift.png", "Aggressive modern racer with fast starts."),
+            ("Chick Hicks", "cars_3_chick10.png", "Classic rival with rough but effective tactics."),
+            ("Lewis Hamilton", "lewis_hamilton.png", "Global icon with elite racecraft and pace."),
+            ("Todd Marcus", "todd-marcus1.png", "Steady performer with strong race rhythm."),
+            ("Raoul ÇaRoule", "raoul_caroule.png", "French rally specialist with sharp transitions."),
+            ("Shu Todoroki", "shu_todoroki.png", "Precision driver with excellent corner control."),
+            ("Nigel Gearsley", "nigel_gearsley.png", "Strategic racer known for balanced pace."),
+            ("Dud Throttleman", "dud_throttleman.png", "Strong late-race charger and drafter."),
+            ("Speedy Comet", "speedy_comet.png", "Quick accelerator with aggressive starts."),
+            ("Brick Yardley", "brick_yardley.png", "Consistent lap-time specialist."),
+            ("Bubba Wheelhouse", "bubba_wheelhouse.png", "Fearless overtaker with dirt-track roots."),
+            ("Chase Racelott", "chase_racelott.png", "Young rising racer with clean exits."),
+            ("Nikolai Javier Jr.", "Nikolai_Javier1.png", "Rising star from the Philippines with incredible speed."),
+            ("Daria Patrick", "bini_dariapatrick1.png", "American racing icon known for her determination and skill."),
+            ("Anderson Shell", "AndersonShell.png", "Sharp strategist with elite fuel-saving pace."),
+            ("Kool Oliver", "KoolOliver.png", "Cool-headed racer with smooth tire management."),
+            ("Tyrant Jones", "TyrantJones.png", "Fearless charger known for bold overtakes."),
+            ("Pandazer", "Pandazer.png", "Technical specialist with fast sector splits."),
+            ("Zoda Collins", "ZodaCollins.png", "Explosive starter with strong first-lap speed."),
+            ("Mister Ketchum", "MrKetchum.png", "Veteran racer with disciplined race control."),
+            ("Snoop Dogg", "LakerBoy.png", "Style icon bringing calm confidence to the grid."),
+            ("Stephen Curry", "StepCurry.png", "Precision ace with laser-accurate lines."),
+            ("Anthony Edwards", "AntManGuy.png", "Dynamic attacker with high-speed reflexes."),
+            ("LeBron James", "BronJames.png", "Powerhouse racer with unmatched race IQ."),
+            ("BTS V", "BTSBoy.png", "Elegant driver with clean rhythm and flair."),
+            ("Pierre Bouvier", "SimplePlan.png", "Composed competitor with steady lap flow."),
+            ("Alex Gaskarth", "AllTimeLow.png", "Fast adapter who shines in changing conditions."),
+            ("Victor Gyokeres", "ArsenalGunners.png", "Powerful finisher with relentless pace."),
+            ("Bruno Fernandes", "ManUnited.png", "Creative tactician with smart pit timing."),
+            ("Erling Haaland", "ManCity.png", "High-output racer built for straight-line speed."),
+            ("Lamine Yamal", "FCBarcelona.png", "Young prodigy with fearless racecraft."),
+            ("Vini Jr.", "RealMadrid.png", "Electric pace with rapid corner exits."),
+            ("Steven Wirtz", "LiverpoolFC.png", "Mid-race maestro with excellent consistency."),
+            ("Mark Hoppus", "182blink.png", "Steady tempo racer with reliable late laps."),
+            ("Billie Joe Armstrong", "GreenDay.png", "Aggressive line-taker with punk-speed energy."),
+            ("Olivia Rodrigo", "OliviaRodrigo.png", "Rising threat with confident race rhythm."),
+            ("Osumane Dembele", "PSG.png", "Rapid mover with unpredictable acceleration."),
+            ("Jayson Tatum", "Celtic.png", "Balanced performer with clutch final laps."),
+            ("Jeremy McKinnon", "ADTR.png", "Heavy-hitting racer with strong race starts."),
+            ("Kelly O'Connor", "Sourpatch.png", "Creative racer with surprise strategy calls."),
+            ("Denise Simmons", "Chitos.png", "Orange-zone sprinter with fearless dives."),
+            ("Simon Simmons", "Ritos.png", "Late-race attacker with crisp overtakes."),
+            ("Tyrell Park", "ColaCola.png", "Endurance-focused racer with steady control."),
+            ("Jim Johnson", "JimiJohnson.png", "Old-school racer with durable race pace."),
+            ("Tyrese Haliburton", "Haliburton.png", "Smooth operator with efficient tire usage."),
+            ("Dame Time", "dametime.png", "Clutch specialist who closes races hard."),
+            ("Aiah Arceta", "BINIaiah.png", "Focused racer with polished corner execution."),
+            ("Colet Vergara", "BINIcolet.png", "High-energy racer with quick recovery speed."),
+            ("Maloi Ricalde", "BINImaloi.png", "Confident tactician with stable lap timing."),
+            ("Gwen Apuli", "BINIgwen.png", "Calm competitor with precise line control."),
+            ("Stacey Sevilleja", "BINIstacey.png", "Strong starter with excellent launch pace."),
+            ("Mikha Lim", "BINImikha.png", "Red-hot racer with aggressive mid-lap gain."),
+            ("Jhoanna Robles", "BINIJhoanna.png", "Strategic racer with balanced risk control."),
+            ("Sheena Catacutan", "BINISheena.png", "Fast learner with adaptable race style."),
+            ("Loisa Andalio", "BINIteal.png", "Teal-speed specialist with strong late pace."),
+            ("AC Bonifacio", "ACBonifacio.png", "Showtime racer with sharp attack windows."),
+            ("Vivoree Esclito", "VivoreeEsclito.png", "Consistent performer with clean race tempo."),
+            ("Charlotte Madison", "Charlotte.png", "Reliable racer with steady technical pace."),
+            ("Cristiano Ronaldo", "CRonaldo.png", "Elite competitor with unmatched winning focus."),
+            ("Harry Kane", "BayernMunich.png", "Clinical finisher with strong race execution."),
+            ("Princess Peach", "PrincessPeach.png", "Graceful racer with smooth line precision."),
+            ("Princess Daisy", "PrincessDaisy.png", "Sunny-speed racer with fearless confidence."),
+            ("Luigi", "SuperLuigi.png", "Classic kart hero with nimble handling."),
+            ("Mario", "SuperMario.png", "Legendary all-round racer with clutch boosts."),
+            ("Rosalina", "PrincessRosalina.png", "Cosmic strategist with elegant long-run pace."),
+            ("Yoshi", "Yoshi.png", "Quick-reacting racer with playful speed bursts."),
+        ]),
     ]
 
     for section_title, entries in sections:
@@ -3578,7 +4008,7 @@ pages = {
     "products": {"label": "\U0001F4CB Product List", "icon": "Menu", "view": show_product_list, "protected": False, "section": "Food & Recipes"},
     "radiator_food": {"label": "\U0001F354 Radiator Springs Food", "icon": "Cars", "view": show_radiator_springs_food, "protected": False, "section": "Food & Recipes"},
     "filipino_food": {"label": "\U0001F1F5\U0001F1ED Filipino Food List", "icon": "PH", "view": show_filipino_food, "protected": False, "section": "Food & Recipes"},
-    "chatbot": {"label": "\U0001F916 Finn-Holley AI Chatbot", "icon": "AI", "view": show_chatbot, "protected": False, "section": "Interactive"},
+    "chatbot": {"label": "\U0001F916 Finn-Holley AI Chatbot", "icon": "AI", "view": show_chatbot_v2, "protected": False, "section": "Interactive"},
     "event_race": {"label": "\U0001F3C1 Event Race", "icon": "Race", "view": show_event_race, "protected": False, "section": "Interactive"},
     "world_tour": {"label": "\U0001F30D World Tour Recipe", "icon": "Tour", "view": show_world_tour, "protected": False, "section": "Interactive"},
     "settings": {"label": "\u2699\ufe0f Settings", "icon": "Config", "view": show_settings, "protected": False, "section": "Account"},

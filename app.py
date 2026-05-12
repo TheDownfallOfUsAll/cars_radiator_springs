@@ -89,7 +89,7 @@ def init_db():
         question_norm TEXT NOT NULL,
         question_raw TEXT NOT NULL,
         response TEXT NOT NULL,
-        source TEXT DEFAULT 'openai',
+        source TEXT DEFAULT 'google_ai_studio',
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(character, question_norm)
     )''')
@@ -196,7 +196,7 @@ def get_cached_chat_response(character, user_input):
     conn.close()
     return row["response"] if row else None
 
-def upsert_cached_chat_response(character, user_input, response_text, source="openai"):
+def upsert_cached_chat_response(character, user_input, response_text, source="google_ai_studio"):
     question_norm = normalize_text(user_input)
     if not question_norm or not response_text:
         return
@@ -2632,10 +2632,10 @@ def generate_ai_response(user_input, character):
                 + get_character_response(top_match['recipe_info'], character)
             )
 
-    # Try OpenAI ChatGPT for real-world responses with character + RAG context
-    openai_response = generate_openai_response(user_input, character, retrieved)
-    if openai_response:
-        return openai_response
+    # Try Google AI Studio (Gemini) for real-world responses with character + RAG context
+    gemini_response = generate_google_ai_response(user_input, character, retrieved)
+    if gemini_response:
+        return gemini_response
 
     # Optional local fallback using Ollama
     try:
@@ -2669,8 +2669,8 @@ def generate_ai_response(user_input, character):
     # Fallback to character-specific responses
     return get_character_fallback(user_input, character)
 
-def generate_openai_response(user_input, character, retrieved):
-    api_key = st.session_state.get("openai_api_key") or os.getenv("OPENAI_API_KEY", "")
+def generate_google_ai_response(user_input, character, retrieved):
+    api_key = st.session_state.get("google_api_key") or os.getenv("GOOGLE_API_KEY", "")
     if not api_key:
         return None
 
@@ -2678,7 +2678,7 @@ def generate_openai_response(user_input, character, retrieved):
     if cached:
         return cached
 
-    model = st.session_state.get("openai_model") or os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+    model = st.session_state.get("google_model") or os.getenv("GOOGLE_MODEL", "gemini-1.5-flash")
 
     retrieved_context = ""
     if retrieved:
@@ -2696,26 +2696,16 @@ def generate_openai_response(user_input, character, retrieved):
         "When recipe context is provided, treat it as trusted app RAG context."
     )
 
-    messages = [{"role": "system", "content": safety_and_role_prompt}]
+    history_chunks = [f"SYSTEM: {safety_and_role_prompt}"]
     if retrieved_context:
-        messages.append(
-            {
-                "role": "system",
-                "content": "RAG Context from local recipe knowledge base:\n" + retrieved_context,
-            }
-        )
+        history_chunks.append("SYSTEM: RAG Context from local recipe knowledge base:\n" + retrieved_context)
 
     cached_examples = retrieve_cached_examples(character, user_input, top_n=2)
     if cached_examples:
         few_shot = "\n\n".join(
             [f"Q: {item['question']}\nA: {item['response'][:320]}" for item in cached_examples]
         )
-        messages.append(
-            {
-                "role": "system",
-                "content": "SQLite memory examples from previous approved answers:\n" + few_shot,
-            }
-        )
+        history_chunks.append("SYSTEM: SQLite memory examples from previous approved answers:\n" + few_shot)
 
     history = st.session_state.get("chat_history", [])
     if not history:
@@ -2726,29 +2716,40 @@ def generate_openai_response(user_input, character, retrieved):
 
     for msg in history[-10:]:
         role = "assistant" if msg.get("role") == "bot" else "user"
-        messages.append({"role": role, "content": msg.get("content", "")})
-
-    messages.append({"role": "user", "content": user_input})
+        history_chunks.append(f"{role.upper()}: {msg.get('content', '')}")
+    history_chunks.append(f"USER: {user_input}")
+    prompt = "\n\n".join(history_chunks)
 
     try:
         import requests
         response = requests.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
+            headers={"Content-Type": "application/json"},
             json={
-                "model": model,
-                "messages": messages,
-                "temperature": 0.6,
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": prompt}
+                        ]
+                    }
+                ],
+                "generationConfig": {
+                    "temperature": 0.6
+                },
             },
             timeout=45,
         )
         if response.status_code == 200:
-            content = response.json()["choices"][0]["message"]["content"].strip()
+            data = response.json()
+            content = (
+                data.get("candidates", [{}])[0]
+                .get("content", {})
+                .get("parts", [{}])[0]
+                .get("text", "")
+                .strip()
+            )
             if content:
-                upsert_cached_chat_response(character, user_input, content, source="openai")
+                upsert_cached_chat_response(character, user_input, content, source="google_ai_studio")
                 return content
     except:
         return None
@@ -2978,27 +2979,27 @@ def show_chatbot():
     st.markdown("""
     <div class='chat-panel'>
         <div class='chat-header'>🤖 Finn-Holley AI Chatbot</div>
-        <div class='chat-hint'>Pick your AI Agent and chat using real-world OpenAI ChatGPT responses, with built-in RAG recipe retrieval, Agentic AI planning, and safe Hacking/Activity Defense support.</div>
+        <div class='chat-hint'>Pick your AI Agent and chat using real-world Google AI Studio (Gemini) responses, with built-in RAG recipe retrieval, Agentic AI planning, and safe Hacking/Activity Defense support.</div>
     </div>
     """, unsafe_allow_html=True)
-    with st.expander("OpenAI ChatGPT Setup", expanded=False):
+    with st.expander("Google AI Studio Setup", expanded=False):
         entered_key = st.text_input(
-            "OpenAI API Key",
+            "Google AI Studio API Key",
             type="password",
-            value=st.session_state.get("openai_api_key", ""),
-            help="Stored in this app session only. You can also set OPENAI_API_KEY as an environment variable.",
+            value=st.session_state.get("google_api_key", ""),
+            help="Stored in this app session only. You can also set GOOGLE_API_KEY as an environment variable.",
         )
         if entered_key:
-            st.session_state.openai_api_key = entered_key.strip()
-        st.session_state.openai_model = st.text_input(
-            "OpenAI Model",
-            value=st.session_state.get("openai_model", "gpt-4.1-mini"),
-            help="Example: gpt-4.1-mini",
-        ).strip() or "gpt-4.1-mini"
-        if st.session_state.get("openai_api_key") or os.getenv("OPENAI_API_KEY"):
-            st.success("OpenAI is configured. Chatbot will use ChatGPT for real-world responses.")
+            st.session_state.google_api_key = entered_key.strip()
+        st.session_state.google_model = st.text_input(
+            "Google Model",
+            value=st.session_state.get("google_model", "gemini-1.5-flash"),
+            help="Example: gemini-1.5-flash",
+        ).strip() or "gemini-1.5-flash"
+        if st.session_state.get("google_api_key") or os.getenv("GOOGLE_API_KEY"):
+            st.success("Google AI Studio is configured. Chatbot will use Gemini for real-world responses.")
         else:
-            st.info("No OpenAI key found yet. The app will use local fallback until a key is provided.")
+            st.info("No Google AI Studio key found yet. The app will use local fallback until a key is provided.")
     st.markdown("### Choose Your Character:")
     
     characters = {
@@ -3123,28 +3124,28 @@ def show_chatbot_v2():
         """
     <div class='chat-panel'>
         <div class='chat-header'>Finn-Holley AI Chatbot</div>
-        <div class='chat-hint'>ChatGPT-style UI with real-world OpenAI responses, SQLite memory, RAG recipe context, and safe Hacking/Activity Defense.</div>
+        <div class='chat-hint'>ChatGPT-style UI with real-world Google AI Studio (Gemini) responses, SQLite memory, RAG recipe context, and safe Hacking/Activity Defense.</div>
     </div>
     """,
         unsafe_allow_html=True,
     )
-    with st.expander("OpenAI ChatGPT Setup", expanded=False):
+    with st.expander("Google AI Studio Setup", expanded=False):
         entered_key = st.text_input(
-            "OpenAI API Key",
+            "Google AI Studio API Key",
             type="password",
-            value=st.session_state.get("openai_api_key", ""),
-            help="Stored in current Streamlit session only. You can also use OPENAI_API_KEY environment variable.",
+            value=st.session_state.get("google_api_key", ""),
+            help="Stored in current Streamlit session only. You can also use GOOGLE_API_KEY environment variable.",
         )
         if entered_key:
-            st.session_state.openai_api_key = entered_key.strip()
-        st.session_state.openai_model = st.text_input(
-            "OpenAI Model",
-            value=st.session_state.get("openai_model", "gpt-4.1-mini"),
-        ).strip() or "gpt-4.1-mini"
-        if st.session_state.get("openai_api_key") or os.getenv("OPENAI_API_KEY"):
-            st.success("OpenAI is configured.")
+            st.session_state.google_api_key = entered_key.strip()
+        st.session_state.google_model = st.text_input(
+            "Google Model",
+            value=st.session_state.get("google_model", "gemini-1.5-flash"),
+        ).strip() or "gemini-1.5-flash"
+        if st.session_state.get("google_api_key") or os.getenv("GOOGLE_API_KEY"):
+            st.success("Google AI Studio is configured.")
         else:
-            st.info("Add your OpenAI API key to enable real-world ChatGPT responses.")
+            st.info("Add your Google AI Studio key to enable real-world Gemini responses.")
 
     characters = {
         "Finn McMissle": "\U0001F3A9",
@@ -3978,6 +3979,137 @@ def show_character_list():
                 if role:
                     st.caption(role)
 
+def show_ai_chat_gemini():
+    st.markdown("## AI CHAT AI Chatbot")
+    st.markdown(
+        "Real-world Google AI Studio (Gemini) responses with built-in RAG and Agentic AI helpers."
+    )
+
+    api_key_input = st.text_input(
+        "Google AI Studio API Key",
+        type="password",
+        value=st.session_state.get("google_api_key", ""),
+        help="Stored in this Streamlit session only.",
+        key="ai_chat_api_key",
+    )
+    if api_key_input:
+        st.session_state.google_api_key = api_key_input.strip()
+
+    st.session_state.google_model = st.text_input(
+        "Google Model",
+        value=st.session_state.get("google_model", "gemini-1.5-flash"),
+        key="ai_chat_model",
+    ).strip() or "gemini-1.5-flash"
+
+    active_key = st.session_state.get("google_api_key") or os.getenv("GOOGLE_API_KEY", "")
+    if active_key:
+        st.success("Google AI Studio is ready. Real-world Gemini responses are enabled.")
+    else:
+        st.warning("Add a Google AI Studio API key to get real-world responses.")
+
+    if "ai_chat_history" not in st.session_state:
+        st.session_state.ai_chat_history = []
+
+    for msg in st.session_state.ai_chat_history:
+        role = "user" if msg["role"] == "user" else "assistant"
+        with st.chat_message(role):
+            st.markdown(msg["content"])
+
+    user_prompt = st.chat_input(
+        "Ask anything (recipes, research, coding, strategy, safe cybersecurity defense)...",
+        key="ai_chat_input_box",
+    )
+
+    if user_prompt:
+        st.session_state.ai_chat_history.append({"role": "user", "content": user_prompt})
+
+        rag_matches = retrieve_recipe_matches(user_prompt, top_n=3)
+        agentic_hint = generate_agentic_response_if_needed(user_prompt, "AI Chat")
+        safety_reply = generate_cybersecurity_response_if_needed(user_prompt, "AI Chat")
+
+        if safety_reply:
+            bot_reply = safety_reply
+        elif active_key:
+            rag_context = "\n\n".join(
+                [f"- {m['recipe_name']}: {m['recipe_info'][:300]}..." for m in rag_matches]
+            ) if rag_matches else "No relevant recipe entries found."
+
+            messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are AI CHAT AI Chatbot in Cars Radiator Springs app. "
+                        "Give accurate real-world responses. Use concise, practical advice. "
+                        "Leverage RAG context when relevant. "
+                        "If the user asks for planning, include an agentic step-by-step flow."
+                    ),
+                },
+                {"role": "system", "content": "RAG Recipe Context:\n" + rag_context},
+            ]
+            if agentic_hint:
+                messages.append({"role": "system", "content": "Agentic helper draft:\n" + agentic_hint})
+
+            for h in st.session_state.ai_chat_history[-8:]:
+                messages.append(
+                    {
+                        "role": "assistant" if h["role"] == "assistant" else "user",
+                        "content": h["content"],
+                    }
+                )
+
+            try:
+                import requests
+                response = requests.post(
+                    f"https://generativelanguage.googleapis.com/v1beta/models/{st.session_state.google_model}:generateContent?key={active_key}",
+                    headers={
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "contents": [
+                            {
+                                "parts": [
+                                    {
+                                        "text": "\n\n".join(
+                                            [f"{m['role'].upper()}: {m['content']}" for m in messages]
+                                        )
+                                    }
+                                ]
+                            }
+                        ],
+                        "generationConfig": {"temperature": 0.5},
+                    },
+                    timeout=45,
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    bot_reply = (
+                        data.get("candidates", [{}])[0]
+                        .get("content", {})
+                        .get("parts", [{}])[0]
+                        .get("text", "")
+                        .strip()
+                    ) or "No text response returned by Google AI Studio."
+                else:
+                    bot_reply = (
+                        f"Google AI Studio request failed ({response.status_code}). "
+                        "Please verify your API key/model and try again."
+                    )
+            except Exception as ex:
+                bot_reply = f"Google AI Studio connection issue: {ex}"
+        else:
+            bot_reply = generate_ai_response(user_prompt, "Finn McMissle")
+
+        st.session_state.ai_chat_history.append({"role": "assistant", "content": bot_reply})
+        st.rerun()
+
+    action_cols = st.columns(2)
+    with action_cols[0]:
+        if st.button("Clear AI CHAT"):
+            st.session_state.ai_chat_history = []
+            st.rerun()
+    with action_cols[1]:
+        st.caption("RAG + Agentic AI are applied automatically when relevant.")
+
 
 def render_general_footer():
     st.markdown(
@@ -4009,6 +4141,7 @@ pages = {
     "radiator_food": {"label": "\U0001F354 Radiator Springs Food", "icon": "Cars", "view": show_radiator_springs_food, "protected": False, "section": "Food & Recipes"},
     "filipino_food": {"label": "\U0001F1F5\U0001F1ED Filipino Food List", "icon": "PH", "view": show_filipino_food, "protected": False, "section": "Food & Recipes"},
     "chatbot": {"label": "\U0001F916 Finn-Holley AI Chatbot", "icon": "AI", "view": show_chatbot_v2, "protected": False, "section": "Interactive"},
+    "ai_chat": {"label": "\U0001F4AC AI CHAT AI Chatbot", "icon": "Gemini", "view": show_ai_chat_gemini, "protected": False, "section": "Interactive"},
     "event_race": {"label": "\U0001F3C1 Event Race", "icon": "Race", "view": show_event_race, "protected": False, "section": "Interactive"},
     "world_tour": {"label": "\U0001F30D World Tour Recipe", "icon": "Tour", "view": show_world_tour, "protected": False, "section": "Interactive"},
     "settings": {"label": "\u2699\ufe0f Settings", "icon": "Config", "view": show_settings, "protected": False, "section": "Account"},
@@ -4022,6 +4155,7 @@ ordered_page_ids = [
     "radiator_food",
     "filipino_food",
     "chatbot",
+    "ai_chat",
     "event_race",
     "world_tour",
     "settings",
@@ -4047,6 +4181,7 @@ with st.sidebar.expander("Section Guide", expanded=True):
 - \U0001F354 Radiator Springs Food - Cars-themed recipes
 - \U0001F1F5\U0001F1ED Filipino Food List - Traditional Filipino dishes
 - \U0001F916 Finn-Holley AI Chatbot - Chat with Finn, Holley, Rod, Tomber, Leland, Miles, Mater, Professor Zundapp, Lightning McQueen, and Jackson Storm
+- \U0001F4AC AI CHAT AI Chatbot - Google AI Studio Gemini real-world chatbot with RAG and Agentic AI support
 - \U0001F3C1 Event Race - Racing champions with expanded global roster
 - \U0001F30D World Tour Recipe - Complete 5 missions, haunt enemies, unlock recipes, then send package to Sally and Lizzie
 - \u2699\ufe0f Settings - Account settings, theme, notifications, language
@@ -4063,6 +4198,7 @@ Product List<br>
 Radiator Springs Food<br>
 Filipino Food List<br>
 Finn-Holley AI Chatbot<br>
+AI CHAT AI Chatbot<br>
 Event Race<br>
 World Tour Recipe<br>
 Settings<br>

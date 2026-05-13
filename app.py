@@ -3999,7 +3999,7 @@ def show_ai_chat_gemini():
         "Google Model",
         value=st.session_state.get("google_model", "gemini-1.5-flash"),
         key="ai_chat_model",
-    ).strip() or "gemini-1.5-flash"
+    ).strip() or "gemini-2.5-flash"
 
     active_key = st.session_state.get("google_api_key") or os.getenv("GOOGLE_API_KEY", "")
     if active_key:

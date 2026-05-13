@@ -11,7 +11,7 @@ Radiator Springs is imagined as a food-and-racing town where Lightning McQueen, 
 - world food stops
 - race events with champions
 
-This app is designed like a light story mode: you start at home, unlock features through login, explore food systems, then move into race and world-tour gameplay.
+This app is designed like a light story mode: you start at home, explore recipes freely in guest mode, then move into race, chatbot, and world-tour gameplay. Login is optional and kept mainly for account/admin features.
 
 ## Story Modes
 
@@ -23,12 +23,13 @@ New General page with roster sections for:
 - Characters
 - AI Agents
 - Villains (Clippers/Lemons)
+- Racers with image cards and descriptions
 
 ### The Story of Radiator Springs
 Full narrative mode telling how the town became the Home Of The Recipe.
 
 ### Login / Register
-SQLite-based user login with admin support.
+SQLite-based user login with admin support. App pages are now free to use without login.
 
 ### Product List
 Main recipe board with search/filter.
@@ -40,7 +41,7 @@ Cars-themed recipe section.
 Traditional Filipino dishes and entries.
 
 ### Finn-Holley AI Chatbot
-Character-style assistant with 10 selectable personalities.
+Character-style assistant with 10 selectable personalities and Google AI Studio (Gemini) real-world responses.
 
 Key capabilities:
 - recipe questions and cooking guidance
@@ -48,9 +49,13 @@ Key capabilities:
 - race-related prompts (schedule / next racers)
 - retrieval-augmented generation (RAG) from local recipe knowledge
 - agentic planning for menus, shopping lists, and step-by-step cooking
+- SQLite chat memory and response cache
 - profanity/cuss filtering
 - safe cybersecurity-defense guidance for legal/authorized testing workflows
 - refuses harmful hacking requests
+
+### AI CHAT AI Chatbot
+Interactive page powered by Google AI Studio (Gemini), with RAG recipe context and Agentic AI helpers for real-world answers.
 
 ### Event Race
 Expanded race simulation with a large global roster and long-format race logic.
@@ -103,7 +108,11 @@ Styled info cards, version panel, chatbot roster, contact details, and owner spo
 - Character-themed UI and storytelling
 - Recipe browsing and categories
 - SQLite authentication with admin support
+- Guest-mode access with login optional
 - Advanced recipe chatbot with 10 selectable characters
+- Google AI Studio (Gemini) chatbot support
+- AI CHAT AI Chatbot page with RAG and Agentic AI support
+- SQLite chat history and cached responses
 - Safe security-defense chatbot flow for authorized testing guidance
 - Enhanced race mode and mission-based world tour
 - Expanded owner spotlight including Nikolai's crew:
@@ -116,6 +125,7 @@ Styled info cards, version panel, chatbot roster, contact details, and owner spo
 - Python 3.13
 - Streamlit
 - SQLite (`radiator_springs.db`)
+- Google AI Studio / Gemini API
 
 ## Installation
 
@@ -123,6 +133,13 @@ Styled info cards, version panel, chatbot roster, contact details, and owner spo
 python -m venv venv
 venv\Scripts\activate
 pip install streamlit requests
+```
+
+Optional Gemini environment variable:
+
+```powershell
+$env:GOOGLE_API_KEY="your_google_ai_studio_key"
+$env:GOOGLE_MODEL="gemini-1.5-flash"
 ```
 
 ## Run
@@ -139,6 +156,15 @@ Open the URL shown in terminal (usually `http://localhost:8501`).
 - Password: `admin123`
 
 > For production, replace default credentials and strengthen authentication before deploying.
+
+## Google AI Studio Setup
+
+The chatbot now uses Google AI Studio instead of OpenAI.
+
+- Use a Google AI Studio API key in the chatbot setup panel, or set `GOOGLE_API_KEY`.
+- Default model: `gemini-1.5-flash`
+- Optional model override: `GOOGLE_MODEL`
+- The app keeps local fallback responses when no Gemini key is configured.
 
 ## Security Notes
 
@@ -165,6 +191,15 @@ Open the URL shown in terminal (usually `http://localhost:8501`).
 
 ## Version Summary
 
+- **v1.3.0 (May 13, 2026)**
+  - Migrated chatbot provider from OpenAI to Google AI Studio (Gemini)
+  - Added AI CHAT AI Chatbot page under Interactive
+  - Added Google API key/model setup fields
+  - Added SQLite chat history and response cache for chatbot flows
+  - Made app pages free to use without login
+  - Added full racer roster to Character List under General
+  - Improved RAG + Agentic AI chatbot flows and safe defense responses
+
 - **v1.2.0 (May 11, 2026)**
   - Character List page added
   - Home welcome cards switched to image-based Lightning/Mater cards
@@ -178,6 +213,14 @@ Open the URL shown in terminal (usually `http://localhost:8501`).
   - Event Race roster expansion and UI improvements
 
 ## Recent Updates
+
+### 2026-05-13
+- Replaced OpenAI integration with Google AI Studio (Gemini).
+- Added AI CHAT AI Chatbot page for real-world Gemini responses with RAG and Agentic AI.
+- Added Google API key/model setup using `GOOGLE_API_KEY`, `GOOGLE_MODEL`, and in-app session fields.
+- Added SQLite chat memory and response caching.
+- Removed login requirements from app pages; guest mode is now supported.
+- Added the full racer roster with images and descriptions to Character List.
 
 ### 2026-05-11
 - Event Race full-grid upgrades, 70-100 laps, yellow flags, pit repairs, DNF crash-outs, and reset battle flow.

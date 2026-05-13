@@ -3972,7 +3972,7 @@ def show_character_list():
         for idx, (name, image, role) in enumerate(entries):
             with cols[idx % 4]:
                 if os.path.exists(image):
-                    st.image(image, width=400)
+                    st.image(image, width=320)
                 else:
                     st.warning(f"Image not found: {image}")
                 st.markdown(f"**{name}**")

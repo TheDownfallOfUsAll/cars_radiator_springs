@@ -462,11 +462,12 @@ st.markdown("""
 
     /* Chatbot styling */
     .chat-panel {
-        background: linear-gradient(135deg, #fff7d4, #ffd35b);
+        background: #ffffff;
         border-radius: 24px;
         padding: 22px;
         margin-bottom: 24px;
-        box-shadow: 0 16px 36px rgba(255, 154, 0, 0.18);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e0e0e0;
     }
 
     .chat-header {
@@ -484,27 +485,32 @@ st.markdown("""
 
     .chat-message {
         padding: 18px;
-        border-radius: 24px;
+        border-radius: 18px;
         margin: 12px 0;
         color: #111;
-        border: 1px solid rgba(0,0,0,0.08);
-        box-shadow: 0 10px 26px rgba(255, 152, 0, 0.14);
+        max-width: 80%;
+        word-wrap: break-word;
     }
 
     .chat-user {
-        background: linear-gradient(135deg, #fff1b8, #ffb83d);
-        text-align: right;
+        background: #ffffff;
+        text-align: left;
         color: #111;
-        font-weight: 700;
-        border: 1px solid rgba(255, 148, 0, 0.35);
+        font-weight: 500;
+        border: 1px solid #e0e0e0;
+        margin-left: auto;
+        margin-right: 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .chat-bot {
-        background: linear-gradient(135deg, #ffe08a, #ffb347);
+        background: #f7f7f8;
         text-align: left;
         color: #111;
-        border: 2px solid #ff9f00;
-        box-shadow: 0 10px 20px rgba(255, 161, 0, 0.18);
+        border: 1px solid #e0e0e0;
+        margin-left: 0;
+        margin-right: auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .chat-bot strong {
@@ -2722,35 +2728,45 @@ def generate_google_ai_response(user_input, character, retrieved):
 
     try:
         import requests
-        response = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
-            headers={"Content-Type": "application/json"},
-            json={
-                "contents": [
-                    {
-                        "parts": [
-                            {"text": prompt}
-                        ]
-                    }
-                ],
-                "generationConfig": {
-                    "temperature": 0.6
+        import time
+        
+        max_retries = 3
+        for attempt in range(max_retries):
+            response = requests.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "contents": [
+                        {
+                            "parts": [
+                                {"text": prompt}
+                            ]
+                        }
+                    ],
+                    "generationConfig": {
+                        "temperature": 0.6
+                    },
                 },
-            },
-            timeout=45,
-        )
-        if response.status_code == 200:
-            data = response.json()
-            content = (
-                data.get("candidates", [{}])[0]
-                .get("content", {})
-                .get("parts", [{}])[0]
-                .get("text", "")
-                .strip()
+                timeout=45,
             )
-            if content:
-                upsert_cached_chat_response(character, user_input, content, source="google_ai_studio")
-                return content
+            if response.status_code == 200:
+                data = response.json()
+                content = (
+                    data.get("candidates", [{}])[0]
+                    .get("content", {})
+                    .get("parts", [{}])[0]
+                    .get("text", "")
+                    .strip()
+                )
+                if content:
+                    upsert_cached_chat_response(character, user_input, content, source="google_ai_studio")
+                    return content
+            elif response.status_code == 429 and attempt < max_retries - 1:
+                wait_time = 2 ** attempt
+                time.sleep(wait_time)
+                continue
+            else:
+                return None
     except:
         return None
     return None
@@ -2987,7 +3003,7 @@ def show_chatbot():
             "Google AI Studio API Key",
             type="password",
             value=st.session_state.get("google_api_key", ""),
-            help="Stored in this app session only. You can also set GOOGLE_API_KEY as an environment variable.",
+            help="Stored in this app ysession only. You can also set GOOGLE_API_KEY as an environment variable.",
         )
         if entered_key:
             st.session_state.google_api_key = entered_key.strip()
@@ -3999,7 +4015,7 @@ def show_ai_chat_gemini():
         "Google Model",
         value=st.session_state.get("google_model", "gemini-1.5-flash"),
         key="ai_chat_model",
-    ).strip() or "gemini-2.5-flash"
+    ).strip() or "gemini-1.5-flash"
 
     active_key = st.session_state.get("google_api_key") or os.getenv("GOOGLE_API_KEY", "")
     if active_key:
@@ -4059,41 +4075,50 @@ def show_ai_chat_gemini():
 
             try:
                 import requests
-                response = requests.post(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/{st.session_state.google_model}:generateContent?key={active_key}",
-                    headers={
-                        "Content-Type": "application/json",
-                    },
-                    json={
-                        "contents": [
-                            {
-                                "parts": [
-                                    {
-                                        "text": "\n\n".join(
-                                            [f"{m['role'].upper()}: {m['content']}" for m in messages]
-                                        )
-                                    }
-                                ]
-                            }
-                        ],
-                        "generationConfig": {"temperature": 0.5},
-                    },
-                    timeout=45,
-                )
-                if response.status_code == 200:
-                    data = response.json()
-                    bot_reply = (
-                        data.get("candidates", [{}])[0]
-                        .get("content", {})
-                        .get("parts", [{}])[0]
-                        .get("text", "")
-                        .strip()
-                    ) or "No text response returned by Google AI Studio."
-                else:
-                    bot_reply = (
-                        f"Google AI Studio request failed ({response.status_code}). "
-                        "Please verify your API key/model and try again."
+                import time
+                
+                max_retries = 3
+                bot_reply = None
+                for attempt in range(max_retries):
+                    response = requests.post(
+                        f"https://generativelanguage.googleapis.com/v1beta/models/{st.session_state.google_model}:generateContent?key={active_key}",
+                        headers={"Content-Type": "application/json"},
+                        json={
+                            "contents": [
+                                {
+                                    "parts": [
+                                        {
+                                            "text": "\n\n".join(
+                                                [f"{m['role'].upper()}: {m['content']}" for m in messages]
+                                            )
+                                        }
+                                    ]
+                                }
+                            ],
+                            "generationConfig": {"temperature": 0.5},
+                        },
+                        timeout=45,
                     )
+                    if response.status_code == 200:
+                        data = response.json()
+                        bot_reply = (
+                            data.get("candidates", [{}])[0]
+                            .get("content", {})
+                            .get("parts", [{}])[0]
+                            .get("text", "")
+                            .strip()
+                        ) or "No text response returned by Google AI Studio."
+                        break
+                    elif response.status_code == 429 and attempt < max_retries - 1:
+                        wait_time = 2 ** attempt
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        bot_reply = (
+                            f"Google AI Studio request failed ({response.status_code}). "
+                            "Please verify your API key/model and try again."
+                        )
+                        break
             except Exception as ex:
                 bot_reply = f"Google AI Studio connection issue: {ex}"
         else:

@@ -305,9 +305,21 @@ st.markdown("""
     [data-testid="stSidebar"] .stCaption,
     [data-testid="stSidebar"] .css-1oe7j3f,
     [data-testid="stSidebar"] .css-1w4pg4i {
-        color: #111;
-        font-weight: 700;
-        text-shadow: 0 2px 4px rgba(255, 255, 255, 0.6);
+        color: #1a1a1a !important;
+        font-weight: 800;
+        text-shadow: none;
+    }
+
+    /* Force readable nav text inside radio options and buttons */
+    [data-testid="stSidebar"] .stRadio label p,
+    [data-testid="stSidebar"] .stRadio label span,
+    [data-testid="stSidebar"] button p,
+    [data-testid="stSidebar"] button span,
+    [data-testid="stSidebar"] [role="radiogroup"] label div {
+        color: #141414 !important;
+        font-weight: 800 !important;
+        opacity: 1 !important;
+        text-shadow: none !important;
     }
 
     [data-testid="stSidebar"] .stSelectbox > div > div,
@@ -322,15 +334,15 @@ st.markdown("""
     }
 
     [data-testid="stSidebar"] .stRadio [role="radiogroup"] > label {
-        background: linear-gradient(135deg, #fff4b8 0%, #ffc976 100%);
-        border: 2px solid rgba(255, 255, 255, 0.5);
+        background: linear-gradient(135deg, #fff1a0 0%, #ffbe5a 100%);
+        border: 2px solid rgba(0, 0, 0, 0.12);
         border-radius: 16px;
         margin-bottom: 12px;
         padding: 14px 16px;
         transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        color: #111;
+        color: #141414;
         font-weight: 800;
-        box-shadow: 0 4px 15px rgba(255, 140, 0, 0.25);
+        box-shadow: 0 4px 12px rgba(255, 140, 0, 0.2);
     }
 
     [data-testid="stSidebar"] .stRadio [role="radiogroup"] > label:hover {
@@ -341,10 +353,10 @@ st.markdown("""
     }
 
     [data-testid="stSidebar"] .stRadio [role="radiogroup"] > label[aria-checked="true"] {
-        background: linear-gradient(135deg, #ffeb3b 0%, #ff8c00 100%);
-        color: #111;
-        border-color: #ff3b30;
-        box-shadow: 0 6px 25px rgba(255, 100, 0, 0.5);
+        background: linear-gradient(135deg, #ffd84d 0%, #ff9a1f 100%);
+        color: #111111;
+        border-color: #a63f00;
+        box-shadow: 0 6px 20px rgba(166, 63, 0, 0.28);
         transform: scale(1.02);
     }
 
